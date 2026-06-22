@@ -64,7 +64,7 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
       </aside>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-panel border-t border-line flex justify-around px-2 py-2 safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-panel border-t border-line flex justify-around px-2 py-2">
         {navItems.map((item) => {
           const locked = item.requiresRepo && !repoInfo;
           return (

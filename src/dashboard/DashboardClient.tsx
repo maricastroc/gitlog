@@ -114,7 +114,7 @@ export default function DashboardClient() {
           <SelectRepo onLoaded={handleRepoLoaded} recents={recents} keywords={settings.keywords} />
         </div>
 
-        {view === "overview"  && repoInfo && <Overview commits={commits} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}
+        {view === "overview"  && repoInfo && <Overview commits={commits} repoInfo={repoInfo} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}
         {view === "commits"   && repoInfo && <CommitsView commits={commits} onCategoryChange={handleCategoryChange} />}
         {view === "changelog" && repoInfo && <ChangelogView commits={commits} repoInfo={repoInfo} />}
         {view === "authors"   && repoInfo && <AuthorView commits={commits} />}
