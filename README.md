@@ -20,6 +20,8 @@ A full-stack changelog generator that turns Git commit history into structured, 
 
 **Tag-range filtering** — instead of loading all commits, you pick a `from` and `to` tag, and the API resolves each tag ref to its SHA before querying the GitHub commits endpoint — so the range is always precise.
 
+**Interactive commit activity chart** — the overview displays a bar chart of commit frequency over time. Clicking a bar filters the "Recent activity" list to show only commits from that day, with a dismissible chip showing the active filter.
+
 ---
 
 ## Features
