@@ -17,11 +17,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const tags = raw.trim().split("\n").filter(Boolean);
       return res.json({ data: tags });
     } catch {
-      return res.status(500).json({ error: "Falha ao ler tags do repositório local" });
+      return res.status(500).json({ error: "Failed to read tags from local repository" });
     }
   }
 
-  if (!owner || !repo) return res.status(400).json({ error: "owner e repo são obrigatórios" });
+  if (!owner || !repo) return res.status(400).json({ error: "owner and repo are required" });
   const headers: HeadersInit = { Accept: "application/vnd.github+json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 

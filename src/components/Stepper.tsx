@@ -1,4 +1,4 @@
-const STEPS = ["Repositório", "Tags", "Changelog"];
+const STEPS = ["Repository", "Tags", "Changelog"];
 
 export default function Stepper({ step }: { step: number }) {
   return (

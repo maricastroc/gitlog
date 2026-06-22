@@ -1,17 +1,17 @@
 "use client";
 
-import type { View, RepoInfo } from "@/dashboard/DashboardClient";
+import type { View, RepoInfo } from "@/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCodeBranch, faChartPie, faListUl, faSlidersH, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
 
 type Props = { view: View; setView: (v: View) => void; repoInfo: RepoInfo | null };
 
 const navItems: { id: View; label: string; icon: any; requiresRepo?: boolean }[] = [
-  { id: "select",    label: "Selecionar repo", icon: faCodeBranch },
-  { id: "overview",  label: "Visão geral",     icon: faChartPie,         requiresRepo: true },
-  { id: "commits",   label: "Commits",         icon: faClockRotateLeft,  requiresRepo: true },
-  { id: "changelog", label: "Changelog",       icon: faListUl,           requiresRepo: true },
-  { id: "settings",  label: "Configurações",   icon: faSlidersH   },
+  { id: "select",    label: "Select repo",  icon: faCodeBranch },
+  { id: "overview",  label: "Overview",     icon: faChartPie,         requiresRepo: true },
+  { id: "commits",   label: "Commits",      icon: faClockRotateLeft,  requiresRepo: true },
+  { id: "changelog", label: "Changelog",    icon: faListUl,           requiresRepo: true },
+  { id: "settings",  label: "Settings",     icon: faSlidersH   },
 ];
 
 export default function Sidebar({ view, setView, repoInfo }: Props) {
@@ -34,7 +34,7 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
                 key={item.id}
                 onClick={() => !locked && setView(item.id)}
                 disabled={locked}
-                title={locked ? "Carregue um repositório primeiro" : undefined}
+                title={locked ? "Load a repository first" : undefined}
                 className={`relative flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] text-left w-full border-none font-mono transition-colors ${
                   locked
                     ? "text-text-dim cursor-not-allowed opacity-50"
@@ -55,7 +55,7 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
 
         {repoInfo?.from && (
           <div className="mt-auto pt-3 border-t border-line px-2">
-            <p className="text-text-dim text-[9px] uppercase tracking-widest mb-1.5">Intervalo</p>
+            <p className="text-text-dim text-[9px] uppercase tracking-widest mb-1.5">Range</p>
             <p className="text-add text-[11px] font-mono">{repoInfo.from}</p>
             <p className="text-text-dim text-[10px]">→</p>
             <p className="text-text text-[11px] font-mono">{repoInfo.to ?? "HEAD"}</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Settings } from "@/dashboard/DashboardClient";
+import type { Settings } from "@/types";
 import { useState } from "react";
 import * as Select from "@radix-ui/react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -44,20 +44,20 @@ export default function SettingsView({ settings, setSettings }: Props) {
   function handleSave() { setSaved(true); setTimeout(() => setSaved(false), 2000); }
 
   const toggles: { key: keyof Omit<Settings, "keywords">; label: string; desc: string }[] = [
-    { key: "conventionalCommits", label: "Conventional Commits",         desc: "prioriza prefixo feat:/fix: quando presente"             },
-    { key: "ignoreMerge",         label: "Ignorar merge commits vazios",  desc: "remove commits de merge sem alteração de conteúdo"      },
-    { key: "categorizeByFile",    label: "Categorizar por arquivo alterado", desc: "usa caminho do diff como fallback se a mensagem for ambígua" },
-    { key: "includeSquash",       label: "Incluir squash commits",        desc: "tenta separar squash em múltiplas entradas"             },
+    { key: "conventionalCommits", label: "Conventional Commits",      desc: "prioritizes feat:/fix: prefix when present"                },
+    { key: "ignoreMerge",         label: "Ignore empty merge commits", desc: "removes merge commits with no content changes"             },
+    { key: "categorizeByFile",    label: "Categorize by changed file", desc: "uses diff path as fallback if the message is ambiguous"   },
+    { key: "includeSquash",       label: "Include squash commits",     desc: "attempts to split squash commits into multiple entries"   },
   ];
 
   return (
     <div className="w-full">
-      <PageHeader title="Configurações de categorização" description="Ajuste a heurística usada pra classificar commits." />
+      <PageHeader title="Categorization settings" description="Adjust the heuristic used to classify commits." />
 
       <div className="grid grid-cols-2 gap-3">
         {/* keywords */}
         <div className="panel">
-          <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">Palavras-chave por categoria</p>
+          <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">Keywords by category</p>
 
           <div className="flex flex-col gap-3 mb-4">
             {Object.entries(settings.keywords).map(([cat, kws]) => (
@@ -99,17 +99,17 @@ export default function SettingsView({ settings, setSettings }: Props) {
                 </Select.Content>
               </Select.Portal>
             </Select.Root>
-            <input type="text" placeholder="nova palavra-chave..." value={newKeyword}
+            <input type="text" placeholder="new keyword..." value={newKeyword}
               onChange={(e) => setNewKeyword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addKeyword()}
               className="flex-1 bg-panel-2 border border-line rounded-[var(--radius-sm)] px-2.5 py-2 text-xs text-text font-mono outline-none focus:border-text-dim placeholder:text-text-dim" />
-            <button onClick={addKeyword} className="btn ghost px-3 py-2 text-xs">+ adicionar</button>
+            <button onClick={addKeyword} className="btn ghost px-3 py-2 text-xs">+ add</button>
           </div>
         </div>
 
         {/* toggles */}
         <div className="panel flex flex-col">
-          <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">Comportamento do parser</p>
+          <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">Parser behavior</p>
 
           <div className="flex flex-col gap-4 flex-1">
             {toggles.map(({ key, label, desc }) => (
@@ -127,7 +127,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
           </div>
 
           <button onClick={handleSave} className="btn mt-6 w-full py-2.5 text-[13px]">
-            {saved ? "✓ configurações salvas" : "salvar configurações"}
+            {saved ? "✓ settings saved" : "save settings"}
           </button>
         </div>
       </div>

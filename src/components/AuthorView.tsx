@@ -1,8 +1,8 @@
 "use client";
 
-import type { Commit } from "@/dashboard/DashboardClient";
+import type { Commit } from "@/types";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import PageHeader from "@/components/PageHeader";
 
 const CAT_TEXT: Record<string, string> = {
@@ -26,7 +26,7 @@ export default function AuthorView({ commits }: Props) {
 
   return (
     <div className="w-full">
-      <PageHeader title="Por autor" description={`${sorted.length} ${sorted.length === 1 ? "contribuidor" : "contribuidores"}`} />
+      <PageHeader title="By author" description={`${sorted.length} ${sorted.length === 1 ? "contributor" : "contributors"}`} />
 
       <div className="flex flex-col gap-3">
         {sorted.map(([author, cs]) => (
@@ -43,7 +43,7 @@ export default function AuthorView({ commits }: Props) {
             <div className="flex flex-col gap-1.5">
               {cs.slice(0, 5).map((c) => (
                 <div key={c.sha} className="flex items-center gap-2.5 text-xs">
-                  <span className="text-text-dim w-12 shrink-0 text-[11px]">{format(new Date(c.date), "d MMM", { locale: ptBR })}</span>
+                  <span className="text-text-dim w-12 shrink-0 text-[11px]">{format(new Date(c.date), "d MMM", { locale: enUS })}</span>
                   <span className="text-text flex-1 truncate">{c.message}</span>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-[var(--radius-pill)] uppercase tracking-wider font-semibold shrink-0 ${CAT_TEXT[c.category] ?? "text-text-dim"} ${CAT_BG[c.category] ?? ""}`}>
                     {c.category}

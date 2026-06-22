@@ -19,9 +19,9 @@ function formatCount(n: number) {
 }
 
 const FLOW_STEPS = [
-  { n: "01", title: "Buscamos as tags",        desc: "Listamos todas as tags Git para definir o intervalo do changelog." },
-  { n: "02", title: "Identificamos os commits", desc: "Filtramos e categorizamos cada commit: feat, fix, chore, docs..." },
-  { n: "03", title: "Geramos o changelog",      desc: "Changelog legível, pronto para copiar ou exportar em Markdown." },
+  { n: "01", title: "We fetch the tags",       desc: "We list all Git tags to define the changelog range." },
+  { n: "02", title: "We identify the commits", desc: "We filter and categorize each commit: feat, fix, chore, docs..." },
+  { n: "03", title: "We generate the changelog", desc: "A readable changelog, ready to copy or export as Markdown." },
 ];
 
 type Props = { preview: RepoPreview | null; loading: boolean };
@@ -31,7 +31,7 @@ export default function RepoPreviewPanel({ preview, loading }: Props) {
     return (
       <div className="rounded-xl border border-line bg-panel-2 p-5 flex items-center gap-3 text-text-dim text-sm font-mono">
         <Spinner size="w-4 h-4" />
-        verificando repositório...
+        verifying repository...
       </div>
     );
   }
@@ -49,7 +49,7 @@ export default function RepoPreviewPanel({ preview, loading }: Props) {
           </div>
           {preview.private && (
             <span className="text-[11px] text-fix font-mono flex items-center gap-1.5 shrink-0 bg-fix-dim px-2 py-1 rounded-md">
-              <FontAwesomeIcon icon={faLock} className="w-2.5 h-2.5" /> privado
+              <FontAwesomeIcon icon={faLock} className="w-2.5 h-2.5" /> private
             </span>
           )}
         </div>
@@ -73,7 +73,7 @@ export default function RepoPreviewPanel({ preview, loading }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <p style={{ fontFamily: "'Space Grotesk', sans-serif" }} className="text-text-dim text-[12px] uppercase tracking-widest">
-        O que acontece depois?
+        What happens next?
       </p>
       <div className="flex flex-col gap-3">
         {FLOW_STEPS.map(({ n, title, desc }) => (

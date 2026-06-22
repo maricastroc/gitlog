@@ -1,6 +1,6 @@
 "use client";
 
-import type { Commit, RepoInfo } from "@/dashboard/DashboardClient";
+import type { Commit, RepoInfo } from "@/types";
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
 
@@ -12,8 +12,8 @@ const CAT_PREFIX: Record<string, string> = {
   feat: "+", fix: "~", refactor: "~", chore: "·", docs: "·", test: "·", other: "·",
 };
 const CAT_LABEL: Record<string, string> = {
-  feat: "Features", fix: "Correções", refactor: "Refatorações",
-  chore: "Outros", docs: "Docs", test: "Testes", style: "Estilo", other: "Outros",
+  feat: "Features", fix: "Bug Fixes", refactor: "Refactors",
+  chore: "Chores", docs: "Docs", test: "Tests", style: "Style", other: "Other",
 };
 const ORDER = ["feat", "fix", "refactor", "chore", "docs", "test", "style", "other"];
 
@@ -55,10 +55,10 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
-        <PageHeader title="Changelog gerado" description={intervalLabel} />
+        <PageHeader title="Generated changelog" description={intervalLabel} />
         <div className="flex gap-2 sm:mt-1 shrink-0">
-          <button onClick={handleCopy} className="btn ghost">{copied ? "✓ copiado!" : "copiar markdown"}</button>
-          <button onClick={handleExport} className="btn">exportar .md</button>
+          <button onClick={handleCopy} className="btn ghost">{copied ? "✓ copied!" : "copy markdown"}</button>
+          <button onClick={handleExport} className="btn">export .md</button>
         </div>
       </div>
 

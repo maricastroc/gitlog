@@ -16,7 +16,7 @@ export default function TagSelect({ value, onValueChange, options, placeholder }
       </Select.Trigger>
       <Select.Portal>
         <Select.Content position="popper" sideOffset={4} className="z-50 w-[var(--radix-select-trigger-width)] bg-panel-2 border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden">
-          <Select.Viewport className="p-1">
+          <Select.Viewport className="p-1 max-h-60 overflow-y-auto">
             {options.map((opt) => (
               <Select.Item key={opt.value} value={opt.value}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[12px] font-mono text-text-dim cursor-pointer outline-none data-[highlighted]:bg-panel data-[highlighted]:text-text data-[state=checked]:text-add">

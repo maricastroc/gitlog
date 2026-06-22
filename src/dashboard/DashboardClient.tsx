@@ -9,21 +9,17 @@ import CommitsView from "@/components/CommitsView";
 import ChangelogView from "@/components/ChangelogView";
 import SettingsView from "@/components/SettingsView";
 import AuthorView from "@/components/AuthorView";
-
-export type Commit = { sha: string; message: string; author: string; date: string; category: string };
-export type RepoInfo = { type: "local" | "remote"; label: string; path?: string; owner?: string; repo?: string; token?: string; from?: string; to?: string };
-export type View = "select" | "overview" | "commits" | "changelog" | "authors" | "settings";
-export type Settings = { keywords: Record<string, string[]>; conventionalCommits: boolean; ignoreMerge: boolean; categorizeByFile: boolean; includeSquash: boolean };
+import type { Commit, RepoInfo, View, Settings } from "@/types";
 
 const DEFAULT_SETTINGS: Settings = {
   keywords: {
-    feat:     ["adiciona", "implementa", "cria", "nova"],
-    fix:      ["corrige", "conserta", "resolve", "trata"],
-    chore:    ["atualiza", "ajusta", "remove", "limpa"],
-    docs:     ["documenta", "comenta", "readme"],
-    refactor: ["refatora", "reorganiza"],
-    style:    ["estilo", "layout", "css"],
-    test:     ["teste", "testa", "spec"],
+    feat:     ["adds", "implements", "creates", "introduces"],
+    fix:      ["fixes", "resolves", "patches", "corrects"],
+    chore:    ["updates", "bumps", "removes", "cleans"],
+    docs:     ["documents", "comments", "readme"],
+    refactor: ["refactors", "reorganizes"],
+    style:    ["styles", "layout", "css"],
+    test:     ["tests", "specs", "coverage"],
   },
   conventionalCommits: true, ignoreMerge: true, categorizeByFile: true, includeSquash: false,
 };
@@ -33,19 +29,19 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
     <div className="flex flex-col items-center justify-center h-full gap-8 text-center max-w-md mx-auto">
       <div>
         <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 28, fontWeight: 700 }} className="text-text mb-2">
-          Bem-vindo ao Gitlog
+          Welcome to Gitlog
         </p>
         <p className="text-text-dim text-[13px] leading-relaxed">
-          Gere changelogs profissionais a partir do histórico de commits do seu repositório Git.
+          Generate professional changelogs from your Git repository commit history.
         </p>
       </div>
 
       <div className="flex flex-col gap-2.5 w-full text-left">
         {[
-          { icon: "✓", label: "Gera changelogs automaticamente a partir de tags Git" },
-          { icon: "✓", label: "Categoriza commits por tipo: feat, fix, chore, docs..." },
-          { icon: "✓", label: "Suporta repositórios GitHub remotos e locais" },
-          { icon: "✓", label: "Exportação em Markdown pronta para usar" },
+          { icon: "✓", label: "Automatically generates changelogs from Git tags" },
+          { icon: "✓", label: "Categorizes commits by type: feat, fix, chore, docs..." },
+          { icon: "✓", label: "Supports remote GitHub and local repositories" },
+          { icon: "✓", label: "Export to Markdown, ready to use" },
         ].map(({ icon, label }) => (
           <div key={label} className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-panel border border-line">
             <span className="text-add text-sm">{icon}</span>
@@ -56,7 +52,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
 
       <button onClick={onStart}
         className="flex items-center gap-2 px-6 py-3 rounded-lg text-[13px] font-mono bg-add-dim text-add border border-add hover:brightness-110 transition-all cursor-pointer">
-        Selecionar repositório →
+        Select repository →
       </button>
     </div>
   );
@@ -67,10 +63,10 @@ function EmptyState({ onSelect }: { onSelect: () => void }) {
     <div className="flex flex-col items-center justify-center h-full gap-5 text-center">
       <div className="w-14 h-14 rounded-xl bg-panel border border-line flex items-center justify-center text-2xl text-line">▣</div>
       <div className="flex flex-col gap-1.5">
-        <p className="text-text text-[15px]">Nenhum repositório selecionado</p>
-        <p className="text-text-dim text-xs max-w-xs">Aponte um repositório GitHub ou local para visualizar o histórico de commits.</p>
+        <p className="text-text text-[15px]">No repository selected</p>
+        <p className="text-text-dim text-xs max-w-xs">Point to a GitHub or local repository to view the commit history.</p>
       </div>
-      <button onClick={onSelect} className="btn text-[13px] px-5 py-2.5">→ Selecionar repositório</button>
+      <button onClick={onSelect} className="btn text-[13px] px-5 py-2.5">→ Select repository</button>
     </div>
   );
 }
@@ -115,7 +111,7 @@ export default function DashboardClient() {
 
         {/* SelectRepo sempre montado para preservar estado dos inputs */}
         <div className={showWelcome || view !== "select" ? "hidden" : ""}>
-          <SelectRepo onLoaded={handleRepoLoaded} recents={recents} />
+          <SelectRepo onLoaded={handleRepoLoaded} recents={recents} keywords={settings.keywords} />
         </div>
 
         {view === "overview"  && repoInfo && <Overview commits={commits} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}

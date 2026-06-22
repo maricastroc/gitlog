@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "@/lib/axios";
-import type { Commit, RepoInfo } from "@/dashboard/DashboardClient";
+import type { Commit, RepoInfo, Settings } from "@/types";
 import type { AxiosError } from "axios";
 
 type RemoteParams = { type: "remote"; owner: string; repo: string; token?: string };
@@ -22,7 +22,7 @@ function extractError(err: unknown): string {
   return (err as AxiosError<{ error: string }>)?.response?.data?.error ?? "Erro inesperado";
 }
 
-export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[]) => void) {
+export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[]) => void, keywords: Settings["keywords"] = {}) {
   const [state, setState] = useState<State>(INITIAL);
 
   function set(patch: Partial<State>) {
@@ -47,6 +47,7 @@ export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[]) => v
         ...params,
         ...(state.from && { since: state.from }),
         ...(params.type === "local" && state.to !== "HEAD" && { until: state.to }),
+        keywords: JSON.stringify(keywords),
       };
       const res = await api.get<{ data: Commit[] }>("/commits", { params: commitParams });
       const commits = res.data.data ?? [];
