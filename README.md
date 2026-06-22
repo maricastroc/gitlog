@@ -1,6 +1,7 @@
 # Gitlog
 
-![gitlog_preview](./preview.png)
+<img width="4022" height="2330" alt="Macbook-Air-2011x1165" src="https://github.com/user-attachments/assets/420456ed-3a25-4bc6-8263-a9b080a6f361" />
+
 
 A full-stack changelog generator that turns Git commit history into structured, exportable changelogs — built with Next.js, TypeScript, and the GitHub API.
 
