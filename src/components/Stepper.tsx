@@ -1,3 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+
 const STEPS = ["Repository", "Tags", "Changelog"];
 
 export default function Stepper({ step }: { step: number }) {
@@ -11,7 +14,7 @@ export default function Stepper({ step }: { step: number }) {
               i === step ? "border-add bg-transparent text-add" :
                            "border-line bg-transparent text-line"
             }`}>
-              {i < step ? "✓" : i + 1}
+              {i < step ? <FontAwesomeIcon icon={faCheck} className="w-3 h-3" /> : i + 1}
             </div>
             <span className={`text-[11px] font-mono whitespace-nowrap ${
               i === step ? "text-text" : i < step ? "text-add" : "text-line"

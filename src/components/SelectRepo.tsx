@@ -78,15 +78,31 @@ export default function SelectRepo({ onLoaded, recents = [], keywords = {} }: Pr
         {loader.step === 0 && (
           <>
             <div className="flex gap-1.5 mb-6 p-1 bg-panel-2 rounded-lg w-fit border border-line">
-              {(["remote", "local"] as const).map((t) => (
-                <button key={t} onClick={() => switchTab(t)}
+              <button onClick={() => switchTab("remote")}
+                className={`px-4 py-1.5 rounded-md text-[12px] font-mono cursor-pointer border transition-all ${
+                  tab === "remote" ? "bg-panel border-line text-text shadow-sm" : "bg-transparent border-transparent text-text-dim hover:text-text"
+                }`}>
+                Remote URL
+              </button>
+              {process.env.NODE_ENV === "development" ? (
+                <button onClick={() => switchTab("local")}
                   className={`px-4 py-1.5 rounded-md text-[12px] font-mono cursor-pointer border transition-all ${
-                    tab === t ? "bg-panel border-line text-text shadow-sm" : "bg-transparent border-transparent text-text-dim hover:text-text"
+                    tab === "local" ? "bg-panel border-line text-text shadow-sm" : "bg-transparent border-transparent text-text-dim hover:text-text"
                   }`}>
-                  {t === "remote" ? "Remote URL" : "Local repo"}
+                  Local repo
                 </button>
-              ))}
+              ) : (
+                <span title="Only available when running locally"
+                  className="px-4 py-1.5 rounded-md text-[12px] font-mono border border-transparent text-text-dim/40 cursor-not-allowed select-none">
+                  Local repo
+                </span>
+              )}
             </div>
+            {process.env.NODE_ENV !== "development" && tab === "local" && (
+              <p className="text-text-dim text-[12px] font-mono -mt-4 mb-2">
+                Local repositories are only supported when running the app locally.
+              </p>
+            )}
 
             <div className="flex flex-col gap-4">
               {tab === "remote" ? (
