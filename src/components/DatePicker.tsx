@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendar, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 type Props = {
-  value: string;          // "yyyy-MM-dd" or ""
+  value: string;
   onChange: (v: string) => void;
   placeholder?: string;
 };

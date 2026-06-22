@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faChevronRight, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import type { Commit, RepoInfo } from "@/dashboard/DashboardClient";
 import type { RecentRepo } from "@/hooks/useRecentRepos";
-import type { AxiosError } from "axios";
-import { githubApi } from "@/lib/axios";
-import useRequest from "@/hooks/useRequest";
+import { useRepoPreview } from "@/hooks/useRepoPreview";
+import { useRepoLoader } from "@/hooks/useRepoLoader";
 import Button from "@/components/Button";
 import FormField, { INPUT_CLS } from "@/components/FormField";
 import Stepper from "@/components/Stepper";
 import TagSelect from "@/components/TagSelect";
-import RepoPreviewPanel, { type RepoPreview } from "@/components/RepoPreviewPanel";
+import RepoPreviewPanel from "@/components/RepoPreviewPanel";
 import PageHeader from "@/components/PageHeader";
 
 type Props = { onLoaded: (info: RepoInfo, commits: Commit[]) => void; recents?: RecentRepo[] };
@@ -31,99 +30,56 @@ export default function SelectRepo({ onLoaded, recents = [] }: Props) {
   const [token, setToken]         = useState("");
   const [tokenOpen, setTokenOpen] = useState(false);
   const [localPath, setLocalPath] = useState("");
-  const [to, setTo]               = useState("HEAD");
-  const [localError, setLocalError] = useState("");
 
-  const [tagsReq, setTagsReq]       = useState<Parameters<typeof useRequest>[0]>(null);
-  const [commitsReq, setCommitsReq] = useState<Parameters<typeof useRequest>[0]>(null);
+  const parsed = tab === "remote" ? parseRemote(repoUrl) : null;
+  const { preview, loading: previewLoading } = useRepoPreview(parsed?.owner ?? null, parsed?.repo ?? null, token);
 
-  const tagsRes    = useRequest<string[]>(tagsReq);
-  const commitsRes = useRequest<Commit[]>(commitsReq);
+  const loader = useRepoLoader(onLoaded);
 
-  const tags  = tagsRes.data ?? [];
-  const step  = tagsRes.data !== undefined && !tagsRes.error ? 1 : 0;
-  const error = (tagsRes.error as AxiosError<{ error: string }>)?.response?.data?.error
-            ?? (commitsRes.error as AxiosError<{ error: string }>)?.response?.data?.error
-            ?? localError;
+  const [validationError, setValidationError] = useState("");
 
-  const [selectedFrom, setSelectedFrom] = useState<string | null>(null);
-  const from = selectedFrom ?? tags[0] ?? "";
-
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [preview, setPreview]               = useState<RepoPreview | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    const parsed = tab === "remote" ? parseRemote(repoUrl) : null;
-    if (!parsed) return;
-    debounceRef.current = setTimeout(async () => {
-      setPreviewLoading(true);
-      try {
-        const headers: Record<string, string> = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-        const res = await githubApi.get<RepoPreview>(`/repos/${parsed.owner}/${parsed.repo}`, { headers });
-        setPreview(res.data);
-      } catch { setPreview(null); }
-      finally { setPreviewLoading(false); }
-    }, 600);
-  }, [repoUrl, token, tab]);
-
-  // Único efeito legítimo: chamar onLoaded quando commits chegam (efeito externo)
-  const onLoadedRef = useRef(onLoaded);
-  useEffect(() => { onLoadedRef.current = onLoaded; }, [onLoaded]);
-  const calledRef = useRef(false);
-  useEffect(() => {
-    if (!commitsRes.data || !commitsReq || commitsRes.error || calledRef.current) return;
-    calledRef.current = true;
-    const p = commitsReq.params as Record<string, string>;
-    const info: RepoInfo = p.type === "local"
-      ? { type: "local", label: p.path.split("/").filter(Boolean).pop() ?? p.path, path: p.path, from: p.since, to: p.until ?? "HEAD" }
-      : { type: "remote", label: `${p.owner}/${p.repo}`, owner: p.owner, repo: p.repo, token: p.token || undefined, from: p.since, to: "HEAD" };
-    onLoadedRef.current(info, commitsRes.data);
-  }, [commitsRes.data, commitsRes.error, commitsReq]);
+  const fromOptions = [{ value: "", label: "início do histórico" }, ...loader.tags.map((t) => ({ value: t, label: t }))];
+  const toOptions   = [{ value: "HEAD", label: "HEAD" },            ...loader.tags.map((t) => ({ value: t, label: t }))];
 
   function handleAnalyze() {
-    setLocalError("");
-    setSelectedFrom(null);
-    calledRef.current = false;
+    setValidationError("");
     if (tab === "local") {
-      if (!localPath) { setLocalError("Informe o caminho do repositório"); return; }
-      setTagsReq({ url: "/tags", params: { type: "local", path: localPath } });
+      if (!localPath) { setValidationError("Informe o caminho do repositório"); return; }
+      loader.fetchTags({ type: "local", path: localPath });
     } else {
-      const parsed = parseRemote(repoUrl);
-      if (!parsed) { setLocalError("URL inválida. Use https://github.com/owner/repo"); return; }
-      setTagsReq({ url: "/tags", params: { type: "remote", owner: parsed.owner, repo: parsed.repo, ...(token && { token }) } });
+      if (!parsed) { setValidationError("URL inválida. Use https://github.com/owner/repo"); return; }
+      loader.fetchTags({ type: "remote", owner: parsed.owner, repo: parsed.repo, ...(token && { token }) });
     }
   }
 
   function handleProcess() {
-    setLocalError("");
     if (tab === "local") {
-      setCommitsReq({ url: "/commits", params: { type: "local", path: localPath, ...(from && { since: from }), ...(to && to !== "HEAD" && { until: to }) } });
+      loader.fetchCommits({ type: "local", path: localPath });
     } else {
-      const parsed = parseRemote(repoUrl)!;
-      setCommitsReq({ url: "/commits", params: { type: "remote", owner: parsed.owner, repo: parsed.repo, ...(token && { token }), ...(from && { since: from }) } });
+      loader.fetchCommits({ type: "remote", owner: parsed!.owner, repo: parsed!.repo, ...(token && { token }) });
     }
   }
 
-  const fromOptions = [{ value: "", label: "início do histórico" }, ...tags.map((t) => ({ value: t, label: t }))];
-  const toOptions   = [{ value: "HEAD", label: "HEAD" },            ...tags.map((t) => ({ value: t, label: t }))];
+  function switchTab(t: "remote" | "local") {
+    setTab(t);
+    setValidationError("");
+    loader.reset();
+  }
 
   return (
     <div className="flex flex-col md:flex-row gap-8 md:gap-12 h-full">
       <div className="w-full md:w-[420px] md:shrink-0">
-        <Stepper step={step} />
+        <Stepper step={loader.step} />
         <PageHeader
-          title={step === 0 ? "Selecionar repositório" : "Selecionar intervalo de tags"}
-          description={step === 0 ? "Importe um repositório Git para gerar changelogs." : "Escolha o intervalo de tags para filtrar os commits."}
+          title={loader.step === 0 ? "Selecionar repositório" : "Selecionar intervalo de tags"}
+          description={loader.step === 0 ? "Importe um repositório Git para gerar changelogs." : "Escolha o intervalo de tags para filtrar os commits."}
         />
 
-        {step === 0 && (
+        {loader.step === 0 && (
           <>
             <div className="flex gap-1.5 mb-6 p-1 bg-panel-2 rounded-lg w-fit border border-line">
               {(["remote", "local"] as const).map((t) => (
-                <button key={t} onClick={() => { setTab(t); setPreview(null); setLocalError(""); setTagsReq(null); }}
+                <button key={t} onClick={() => switchTab(t)}
                   className={`px-4 py-1.5 rounded-md text-[12px] font-mono cursor-pointer border transition-all ${
                     tab === t ? "bg-panel border-line text-text shadow-sm" : "bg-transparent border-transparent text-text-dim hover:text-text"
                   }`}>
@@ -137,7 +93,7 @@ export default function SelectRepo({ onLoaded, recents = [] }: Props) {
                 <>
                   <FormField label="URL do repositório">
                     <input className={INPUT_CLS} type="text" placeholder="https://github.com/owner/repository"
-                      value={repoUrl} onChange={(e) => { setRepoUrl(e.target.value); setLocalError(""); setTagsReq(null); }} />
+                      value={repoUrl} onChange={(e) => { setRepoUrl(e.target.value); loader.reset(); }} />
                     <div className="flex gap-3 mt-2">
                       {["vercel/next.js", "facebook/react", "microsoft/vscode"].map((ex) => (
                         <button key={ex} onClick={() => setRepoUrl(`https://github.com/${ex}`)}
@@ -167,14 +123,16 @@ export default function SelectRepo({ onLoaded, recents = [] }: Props) {
               ) : (
                 <FormField label="Caminho do repositório">
                   <input className={INPUT_CLS} type="text" placeholder="/Users/você/dev/meu-projeto"
-                    value={localPath} onChange={(e) => { setLocalPath(e.target.value); setLocalError(""); setTagsReq(null); }} />
+                    value={localPath} onChange={(e) => { setLocalPath(e.target.value); loader.reset(); }} />
                 </FormField>
               )}
 
-              <Button onClick={handleAnalyze} loading={tagsRes.isValidating} className="w-full mt-2 py-3">
+              <Button onClick={handleAnalyze} loading={loader.isLoading} className="w-full mt-2 py-3">
                 Analisar repositório →
               </Button>
-              {error && <p className="text-red-400 text-sm">{error}</p>}
+              {(validationError || loader.error) && (
+                <p className="text-red-400 text-sm">{validationError || loader.error}</p>
+              )}
             </div>
 
             {recents.length > 0 && (
@@ -186,8 +144,8 @@ export default function SelectRepo({ onLoaded, recents = [] }: Props) {
                 <div className="flex flex-col gap-1.5">
                   {recents.map((r) => (
                     <button key={r.url ?? r.path} onClick={() => {
-                      if (r.type === "remote" && r.url) { setTab("remote"); setRepoUrl(r.url); }
-                      if (r.type === "local"  && r.path) { setTab("local");  setLocalPath(r.path); }
+                      if (r.type === "remote" && r.url)  { switchTab("remote"); setRepoUrl(r.url); }
+                      if (r.type === "local"  && r.path) { switchTab("local");  setLocalPath(r.path); }
                     }}
                       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-panel-2 border border-line text-left hover:border-text-dim transition-colors cursor-pointer">
                       <span className="text-add text-[10px] font-mono shrink-0">{r.type === "remote" ? "gh" : "local"}</span>
@@ -200,21 +158,21 @@ export default function SelectRepo({ onLoaded, recents = [] }: Props) {
           </>
         )}
 
-        {step === 1 && (
+        {loader.step === 1 && (
           <div className="flex flex-col gap-5">
             <div className="grid grid-cols-2 gap-3">
               <FormField label="De">
-                <TagSelect value={from} onValueChange={setSelectedFrom} options={fromOptions} placeholder="início do histórico" />
+                <TagSelect value={loader.from} onValueChange={loader.setFrom} options={fromOptions} placeholder="início do histórico" />
               </FormField>
               <FormField label="Até">
-                <TagSelect value={to} onValueChange={setTo} options={toOptions} placeholder="HEAD" />
+                <TagSelect value={loader.to} onValueChange={loader.setTo} options={toOptions} placeholder="HEAD" />
               </FormField>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => { setTagsReq(null); setCommitsReq(null); }} className="px-4 py-3">← voltar</Button>
-              <Button onClick={handleProcess} loading={commitsRes.isValidating} className="flex-1 py-3">Gerar changelog →</Button>
+              <Button variant="outline" onClick={loader.reset} className="px-4 py-3">← voltar</Button>
+              <Button onClick={handleProcess} loading={loader.isLoading} className="flex-1 py-3">Gerar changelog →</Button>
             </div>
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {loader.error && <p className="text-red-400 text-sm">{loader.error}</p>}
           </div>
         )}
       </div>
