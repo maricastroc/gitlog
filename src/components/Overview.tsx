@@ -5,26 +5,20 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import PageHeader from "@/components/PageHeader";
 
-const CAT_TEXT: Record<string, string> = {
-  feat: "text-add", fix: "text-fix", chore: "text-chore", docs: "text-docs",
-  refactor: "text-chore", other: "text-text-dim",
-};
-const CAT_BG: Record<string, string> = {
-  feat: "bg-add-dim", fix: "bg-fix-dim", chore: "bg-chore-dim", docs: "bg-docs-dim",
-  refactor: "bg-chore-dim", other: "bg-transparent",
-};
-const CAT_DOT: Record<string, string> = {
-  feat: "bg-add", fix: "bg-fix", chore: "bg-chore", docs: "bg-docs",
-  refactor: "bg-chore", other: "bg-text-dim",
-};
-const CAT_BAR: Record<string, string> = {
-  feat: "bg-add", fix: "bg-fix", chore: "bg-chore", docs: "bg-docs",
-  refactor: "bg-chore", other: "bg-text-dim",
+const CAT: Record<string, { text: string; bg: string; dot: string; bar: string }> = {
+  feat:     { text: "text-add",      bg: "bg-add-dim",   dot: "bg-add",      bar: "bg-add"      },
+  fix:      { text: "text-fix",      bg: "bg-fix-dim",   dot: "bg-fix",      bar: "bg-fix"      },
+  chore:    { text: "text-chore",    bg: "bg-chore-dim", dot: "bg-chore",    bar: "bg-chore"    },
+  docs:     { text: "text-docs",     bg: "bg-docs-dim",  dot: "bg-docs",     bar: "bg-docs"     },
+  refactor: { text: "text-chore",    bg: "bg-chore-dim",  dot: "bg-chore",    bar: "bg-chore"    },
+  style:    { text: "text-style",    bg: "bg-style-dim",  dot: "bg-style",    bar: "bg-style"    },
+  test:     { text: "text-test",     bg: "bg-test-dim",   dot: "bg-test",     bar: "bg-test"     },
+  other:    { text: "text-text-dim", bg: "bg-panel-2", dot: "bg-text-dim", bar: "bg-text-dim" },
 };
 
-type Props = { commits: Commit[] };
+type Props = { commits: Commit[]; onViewAllCommits: () => void };
 
-export default function Overview({ commits }: Props) {
+export default function Overview({ commits, onViewAllCommits }: Props) {
   const authors = [...new Set(commits.map((c) => c.author))];
   const dates = commits.map((c) => new Date(c.date)).sort((a, b) => a.getTime() - b.getTime());
   const since = dates[0] ? format(dates[0], "d MMM yyyy", { locale: ptBR }) : "—";
@@ -72,14 +66,19 @@ export default function Overview({ commits }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
         <div className="lg:col-span-3 panel">
-          <p className="text-text-dim text-[10px] uppercase tracking-widest mb-3.5">Atividade recente</p>
+          <div className="flex items-center justify-between mb-3.5">
+            <p className="text-text-dim text-[10px] uppercase tracking-widest">Atividade recente</p>
+            <button onClick={onViewAllCommits} className="text-[11px] text-add font-mono hover:underline underline-offset-2 cursor-pointer">
+              ver todos →
+            </button>
+          </div>
           <div className="flex flex-col gap-2.5">
             {recent.map((c) => (
               <div key={c.sha} className="flex items-center gap-2.5">
-                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${CAT_DOT[c.category] ?? "bg-text-dim"}`} />
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${CAT[c.category]?.dot ?? "bg-text-dim"}`} />
                 <span className="text-text-dim text-[11px] w-13 shrink-0">{format(new Date(c.date), "d MMM", { locale: ptBR })}</span>
                 <span className="text-text text-xs flex-1 truncate">{c.message}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-[var(--radius-pill)] uppercase tracking-wider font-semibold shrink-0 ${CAT_TEXT[c.category] ?? "text-text-dim"} ${CAT_BG[c.category] ?? ""}`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-[var(--radius-pill)] uppercase tracking-wider font-semibold shrink-0 ${CAT[c.category]?.text ?? "text-text-dim"} ${CAT[c.category]?.bg ?? ""}`}>
                   {c.category}
                 </span>
               </div>
@@ -98,7 +97,7 @@ export default function Overview({ commits }: Props) {
                     <span className="text-text-dim">{Math.round((count / commits.length) * 100)}%</span>
                   </div>
                   <div className="h-1 bg-panel-2 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${CAT_BAR[cat] ?? "bg-text-dim"}`} style={{ width: `${(count / maxCat) * 100}%` }} />
+                    <div className={`h-full rounded-full ${CAT[cat]?.bar ?? "bg-text-dim"}`} style={{ width: `${(count / maxCat) * 100}%` }} />
                   </div>
                 </div>
               ))}

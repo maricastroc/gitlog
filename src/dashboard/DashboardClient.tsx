@@ -4,13 +4,14 @@ import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import SelectRepo from "@/components/SelectRepo";
 import Overview from "@/components/Overview";
+import CommitsView from "@/components/CommitsView";
 import ChangelogView from "@/components/ChangelogView";
 import SettingsView from "@/components/SettingsView";
 import AuthorView from "@/components/AuthorView";
 
 export type Commit = { sha: string; message: string; author: string; date: string; category: string };
 export type RepoInfo = { type: "local" | "remote"; label: string; path?: string; owner?: string; repo?: string; token?: string; from?: string; to?: string };
-export type View = "select" | "overview" | "changelog" | "authors" | "settings";
+export type View = "select" | "overview" | "commits" | "changelog" | "authors" | "settings";
 export type Settings = { keywords: Record<string, string[]>; conventionalCommits: boolean; ignoreMerge: boolean; categorizeByFile: boolean; includeSquash: boolean };
 
 const DEFAULT_SETTINGS: Settings = {
@@ -86,7 +87,7 @@ export default function DashboardClient() {
     setView(v);
   }
 
-  const noRepo = (view === "overview" || view === "changelog" || view === "authors") && !repoInfo;
+  const noRepo = (view === "overview" || view === "commits" || view === "changelog" || view === "authors") && !repoInfo;
   const showWelcome = !welcomed && view === "select" && !repoInfo;
 
   return (
@@ -100,7 +101,8 @@ export default function DashboardClient() {
           <SelectRepo onLoaded={handleRepoLoaded} />
         </div>
 
-        {view === "overview"  && repoInfo && <Overview commits={commits} />}
+        {view === "overview"  && repoInfo && <Overview commits={commits} onViewAllCommits={() => handleSetView("commits")} />}
+        {view === "commits"   && repoInfo && <CommitsView commits={commits} />}
         {view === "changelog" && repoInfo && <ChangelogView commits={commits} repoInfo={repoInfo} />}
         {view === "authors"   && repoInfo && <AuthorView commits={commits} />}
         {view === "settings"  && <SettingsView settings={settings} setSettings={setSettings} />}

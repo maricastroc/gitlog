@@ -74,10 +74,12 @@ function categorize(message: string): string {
   if (/^refactor(\(.+\))?[!:]/.test(m)) return "refactor";
   if (/^test(\(.+\))?[!:]/.test(m)) return "test";
   if (/^style(\(.+\))?[!:]/.test(m)) return "style";
-  if (/\b(fix|corrige|corrigi|bug|erro|falha|conserta|resolve)\b/.test(m)) return "fix";
-  if (/\b(feat|adiciona|adicionei|novo|nova|cria|implementa)\b/.test(m)) return "feat";
-  if (/\b(docs|documenta|readme)\b/.test(m)) return "docs";
-  if (/\b(refactor|refatora|reorganiza)\b/.test(m)) return "refactor";
-  if (/\b(chore|atualiza|remove|limpa|ajusta)\b/.test(m)) return "chore";
+  if (/\b(fix(e[sd]|ing)?|bug|hotfix|patch|corrige|corrigi|conserta|resolve|resolvid|falha|erro)\b/.test(m)) return "fix";
+  if (/\b(feat(ure)?|add(s|ed|ing)?|implement(s|ed|ing)?|creat(e[sd]?|ing)|introduc(e[sd]?|ing)|new|novo|nova|adiciona|implementa|cria)\b/.test(m)) return "feat";
+  if (/\b(doc(s|ument(s|ed|ing)?)?|readme|changelog|comment(s|ed|ing)?|documenta)\b/.test(m)) return "docs";
+  if (/\b(refactor(s|ed|ing)?|renam(e[sd]?|ing)|rewrite|rewrit|restructur|reorganiz|reorganiza|refatora|mover?|mov(ed|ing))\b/.test(m)) return "refactor";
+  if (/\b(test(s|ed|ing)?|spec|coverage|assert|jest|vitest|cypress|testando|testa)\b/.test(m)) return "test";
+  if (/\b(style[sd]?|styling|format(s|ted|ting)?|lint(s|ed|ing)?|prettier|css|design|layout|ui|ux|spacing|padding|margin|color|font|icon)\b/.test(m)) return "style";
+  if (/\b(chore|updat(e[sd]?|ing)|upgrad(e[sd]?|ing)|bump(s|ed|ing)?|remov(e[sd]?|ing)|delet(e[sd]?|ing)|clean(s|ed|ing|up)?|adjust(s|ed|ing)?|config|setup|build|ci|cd|deploy|script|depend|migrat|atualiza|remove|limpa|ajusta)\b/.test(m)) return "chore";
   return "other";
 }

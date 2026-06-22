@@ -6,7 +6,7 @@ import PageHeader from "@/components/PageHeader";
 
 const CAT_TEXT: Record<string, string> = {
   feat: "text-add", fix: "text-fix", chore: "text-chore", docs: "text-docs",
-  refactor: "text-chore", other: "text-text-dim",
+  refactor: "text-chore", style: "text-style", test: "text-test", other: "text-text-dim",
 };
 const CAT_PREFIX: Record<string, string> = {
   feat: "+", fix: "~", refactor: "~", chore: "·", docs: "·", test: "·", other: "·",

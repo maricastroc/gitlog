@@ -17,6 +17,10 @@
   --color-chore-dim: #2c3a5a;
   --color-docs:      #c97fd4;
   --color-docs-dim:  #4a2f52;
+  --color-style:     #f4a26b;
+  --color-style-dim: #5a3520;
+  --color-test:      #6dcfcf;
+  --color-test-dim:  #1e4444;
 }
 
 * {

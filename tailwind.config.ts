@@ -23,6 +23,10 @@ export default {
         "chore-dim": "var(--color-chore-dim)",
         docs:        "var(--color-docs)",
         "docs-dim":  "var(--color-docs-dim)",
+        style:       "var(--color-style)",
+        "style-dim": "var(--color-style-dim)",
+        test:        "var(--color-test)",
+        "test-dim":  "var(--color-test-dim)",
       },
       fontFamily: {
         display: ["Space Grotesk", "sans-serif"],

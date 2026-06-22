@@ -2,14 +2,15 @@
 
 import type { View, RepoInfo } from "@/dashboard/DashboardClient";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCodeBranch, faChartPie, faListUl, faSlidersH } from "@fortawesome/free-solid-svg-icons";
+import { faCodeBranch, faChartPie, faListUl, faSlidersH, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
 
 type Props = { view: View; setView: (v: View) => void; repoInfo: RepoInfo | null };
 
 const navItems: { id: View; label: string; icon: any; requiresRepo?: boolean }[] = [
   { id: "select",    label: "Selecionar repo", icon: faCodeBranch },
-  { id: "overview",  label: "Visão geral",     icon: faChartPie,  requiresRepo: true },
-  { id: "changelog", label: "Changelog",       icon: faListUl,    requiresRepo: true },
+  { id: "overview",  label: "Visão geral",     icon: faChartPie,         requiresRepo: true },
+  { id: "commits",   label: "Commits",         icon: faClockRotateLeft,  requiresRepo: true },
+  { id: "changelog", label: "Changelog",       icon: faListUl,           requiresRepo: true },
   { id: "settings",  label: "Configurações",   icon: faSlidersH   },
 ];
 
@@ -36,7 +37,7 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
                 title={locked ? "Carregue um repositório primeiro" : undefined}
                 className={`relative flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] text-left w-full border-none font-mono transition-colors ${
                   locked
-                    ? "text-line cursor-not-allowed opacity-50"
+                    ? "text-text-dim cursor-not-allowed opacity-50"
                     : view === item.id
                     ? "bg-panel-2 text-text cursor-pointer"
                     : "bg-transparent text-text-dim hover:text-text cursor-pointer"
