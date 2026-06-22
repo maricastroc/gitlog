@@ -1,26 +1,121 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg:        #12161c;
+  --color-panel:     #161d27;
+  --color-panel-2:   #1c2733;
+  --color-line:      #283242;
+  --color-text:      #d7dde5;
+  --color-text-dim:  #7d8a9a;
+  --color-add:       #6fd98c;
+  --color-add-dim:   #335940;
+  --color-fix:       #e8a23d;
+  --color-fix-dim:   #5a4423;
+  --color-chore:     #6f8fd9;
+  --color-chore-dim: #2c3a5a;
+  --color-docs:      #c97fd4;
+  --color-docs-dim:  #4a2f52;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html, body {
+  background-color: var(--color-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='none'/%3E%3Ccircle cx='1' cy='1' r='0.5' fill='rgba(255,255,255,0.018)'/%3E%3C/svg%3E");
+  color: var(--color-text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.display, h1, h2, h3 {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+a {
+  color: var(--color-add);
+  text-decoration: none;
+}
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  padding: 18px 20px;
+}
+
+.btn {
+  background: var(--color-add-dim);
+  color: var(--color-add);
+  border: 1px solid var(--color-add);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-line);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px var(--color-panel-2) inset;
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-add);
+  outline-offset: 2px;
+}
+
+[data-radix-select-viewport] {
+  background: var(--color-panel-2);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+[data-radix-select-item] {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--color-text-dim);
+  padding: 7px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+[data-radix-select-item][data-highlighted] {
+  background: var(--color-panel);
+  color: var(--color-text);
+}
+
+[data-radix-select-item][data-state="checked"] {
+  color: var(--color-add);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

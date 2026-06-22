@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 167.01 71.95">
+  <!-- Generator: Adobe Illustrator 30.5.1, SVG Export Plug-In . SVG Version: 2.1.4 Build 3)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #7d8a9a;
+        font-family: IBMPlexMono-Regular, 'IBM Plex Mono';
+        font-size: 13px;
+        letter-spacing: .08em;
+      }
+
+      .st0, .st1, .st2, .st3 {
+        isolation: isolate;
+      }
+
+      .st2 {
+        fill: #d7dde5;
+      }
+
+      .st2, .st3 {
+        font-family: SpaceGrotesk-Bold, 'Space Grotesk';
+        font-size: 44px;
+        font-weight: 700;
+      }
+
+      .st3 {
+        fill: #6fd98c;
+      }
+    </style>
+  </defs>
+  <g class="st1">
+    <text class="st2" transform="translate(0 37.4)"><tspan x="0" y="0">git</tspan></text>
+    <text class="st3" transform="translate(60.8 37.4)"><tspan x="0" y="0">log</tspan></text>
+  </g>
+  <text class="st0" transform="translate(.09 67.4)"><tspan x="0" y="0">CHANGELOG GENERATOR</tspan></text>
+</svg>

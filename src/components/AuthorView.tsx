@@ -1,0 +1,60 @@
+"use client";
+
+import type { Commit } from "@/dashboard/DashboardClient";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import PageHeader from "@/components/PageHeader";
+
+const CAT_TEXT: Record<string, string> = {
+  feat: "text-add", fix: "text-fix", chore: "text-chore", docs: "text-docs",
+  refactor: "text-chore", other: "text-text-dim",
+};
+const CAT_BG: Record<string, string> = {
+  feat: "bg-add-dim", fix: "bg-fix-dim", chore: "bg-chore-dim",
+  docs: "bg-docs-dim", other: "bg-transparent",
+};
+
+type Props = { commits: Commit[] };
+
+export default function AuthorView({ commits }: Props) {
+  const authorMap = commits.reduce<Record<string, Commit[]>>((acc, c) => {
+    if (!acc[c.author]) acc[c.author] = [];
+    acc[c.author].push(c);
+    return acc;
+  }, {});
+  const sorted = Object.entries(authorMap).sort((a, b) => b[1].length - a[1].length);
+
+  return (
+    <div className="w-full">
+      <PageHeader title="Por autor" description={`${sorted.length} ${sorted.length === 1 ? "contribuidor" : "contribuidores"}`} />
+
+      <div className="flex flex-col gap-3">
+        {sorted.map(([author, cs]) => (
+          <div key={author} className="panel">
+            <div className="flex items-center gap-3 mb-3.5">
+              <span className="w-8 h-8 rounded-full bg-panel-2 text-text-dim text-[11px] flex items-center justify-center font-semibold shrink-0">
+                {author.slice(0, 2).toUpperCase()}
+              </span>
+              <div>
+                <p className="text-text text-sm font-medium">{author}</p>
+                <p className="text-text-dim text-[11px]">{cs.length} commits</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {cs.slice(0, 5).map((c) => (
+                <div key={c.sha} className="flex items-center gap-2.5 text-xs">
+                  <span className="text-text-dim w-12 shrink-0 text-[11px]">{format(new Date(c.date), "d MMM", { locale: ptBR })}</span>
+                  <span className="text-text flex-1 truncate">{c.message}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-[var(--radius-pill)] uppercase tracking-wider font-semibold shrink-0 ${CAT_TEXT[c.category] ?? "text-text-dim"} ${CAT_BG[c.category] ?? ""}`}>
+                    {c.category}
+                  </span>
+                </div>
+              ))}
+              {cs.length > 5 && <p className="text-text-dim text-[11px] mt-1">+ {cs.length - 5} commits</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

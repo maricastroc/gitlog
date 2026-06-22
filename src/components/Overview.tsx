@@ -1,0 +1,126 @@
+"use client";
+
+import type { Commit } from "@/dashboard/DashboardClient";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import PageHeader from "@/components/PageHeader";
+
+const CAT_TEXT: Record<string, string> = {
+  feat: "text-add", fix: "text-fix", chore: "text-chore", docs: "text-docs",
+  refactor: "text-chore", other: "text-text-dim",
+};
+const CAT_BG: Record<string, string> = {
+  feat: "bg-add-dim", fix: "bg-fix-dim", chore: "bg-chore-dim", docs: "bg-docs-dim",
+  refactor: "bg-chore-dim", other: "bg-transparent",
+};
+const CAT_DOT: Record<string, string> = {
+  feat: "bg-add", fix: "bg-fix", chore: "bg-chore", docs: "bg-docs",
+  refactor: "bg-chore", other: "bg-text-dim",
+};
+const CAT_BAR: Record<string, string> = {
+  feat: "bg-add", fix: "bg-fix", chore: "bg-chore", docs: "bg-docs",
+  refactor: "bg-chore", other: "bg-text-dim",
+};
+
+type Props = { commits: Commit[] };
+
+export default function Overview({ commits }: Props) {
+  const authors = [...new Set(commits.map((c) => c.author))];
+  const dates = commits.map((c) => new Date(c.date)).sort((a, b) => a.getTime() - b.getTime());
+  const since = dates[0] ? format(dates[0], "d MMM yyyy", { locale: ptBR }) : "—";
+  const until = dates.at(-1) ? format(dates.at(-1)!, "d MMM yyyy", { locale: ptBR }) : "—";
+
+  const byCat    = commits.reduce<Record<string, number>>((a, c) => { a[c.category] = (a[c.category] ?? 0) + 1; return a; }, {});
+  const byAuthor = commits.reduce<Record<string, number>>((a, c) => { a[c.author]   = (a[c.author]   ?? 0) + 1; return a; }, {});
+  const sortedCats    = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const sortedAuthors = Object.entries(byAuthor).sort((a, b) => b[1] - a[1]);
+  const maxCat = sortedCats[0]?.[1] ?? 1;
+  const recent = [...commits].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 7);
+
+  const statCards = [
+    { label: "FEATURES",          count: byCat["feat"]  ?? 0, color: "text-add"      },
+    { label: "CORREÇÕES",         count: byCat["fix"]   ?? 0, color: "text-fix"      },
+    { label: "CHORES",            count: byCat["chore"] ?? 0, color: "text-chore"    },
+    { label: "NÃO CATEGORIZADOS", count: byCat["other"] ?? 0, color: "text-text-dim" },
+  ];
+
+  function copyChangelog() {
+    const groups: Record<string, Commit[]> = {};
+    commits.forEach((c) => { if (!groups[c.category]) groups[c.category] = []; groups[c.category].push(c); });
+    const lines = ["# Changelog\n", ...Object.entries(groups).flatMap(([cat, cs]) => [`## ${cat}`, ...cs.map((c) => `- ${c.message} (${c.sha})`), ""])];
+    navigator.clipboard.writeText(lines.join("\n"));
+  }
+
+  return (
+    <div className="w-full">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
+        <PageHeader
+          title="Visão geral do período"
+          description={`${commits.length} commits · ${authors.length} ${authors.length === 1 ? "autor" : "autores"} · ${since} — ${until}`}
+        />
+        <button onClick={copyChangelog} className="btn mt-1">◎ gerar changelog</button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+        {statCards.map((s) => (
+          <div key={s.label} className="panel">
+            <p className={`text-[28px] font-bold font-display ${s.color}`}>{s.count}</p>
+            <p className="text-text-dim text-[10px] tracking-widest mt-1">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+        <div className="lg:col-span-3 panel">
+          <p className="text-text-dim text-[10px] uppercase tracking-widest mb-3.5">Atividade recente</p>
+          <div className="flex flex-col gap-2.5">
+            {recent.map((c) => (
+              <div key={c.sha} className="flex items-center gap-2.5">
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${CAT_DOT[c.category] ?? "bg-text-dim"}`} />
+                <span className="text-text-dim text-[11px] w-13 shrink-0">{format(new Date(c.date), "d MMM", { locale: ptBR })}</span>
+                <span className="text-text text-xs flex-1 truncate">{c.message}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-[var(--radius-pill)] uppercase tracking-wider font-semibold shrink-0 ${CAT_TEXT[c.category] ?? "text-text-dim"} ${CAT_BG[c.category] ?? ""}`}>
+                  {c.category}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:col-span-2 flex flex-col gap-3">
+          <div className="panel">
+            <p className="text-text-dim text-[10px] uppercase tracking-widest mb-3.5">Distribuição por categoria</p>
+            <div className="flex flex-col gap-2.5">
+              {sortedCats.map(([cat, count]) => (
+                <div key={cat}>
+                  <div className="flex justify-between text-[11px] mb-1">
+                    <span className="text-text-dim">{cat}</span>
+                    <span className="text-text-dim">{Math.round((count / commits.length) * 100)}%</span>
+                  </div>
+                  <div className="h-1 bg-panel-2 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${CAT_BAR[cat] ?? "bg-text-dim"}`} style={{ width: `${(count / maxCat) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="panel">
+            <p className="text-text-dim text-[10px] uppercase tracking-widest mb-3.5">Ranking por autor</p>
+            <div className="flex flex-col gap-2.5">
+              {sortedAuthors.slice(0, 5).map(([author, count]) => (
+                <div key={author} className="flex items-center gap-2.5">
+                  <span className="w-7 h-7 rounded-full bg-panel-2 text-text-dim text-[11px] flex items-center justify-center font-semibold shrink-0">
+                    {author.slice(0, 2).toUpperCase()}
+                  </span>
+                  <span className="text-text text-xs flex-1 truncate">{author}</span>
+                  <span className="text-text-dim text-[11px] shrink-0">{count} commits</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

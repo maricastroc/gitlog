@@ -1,0 +1,83 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+import { execSync } from "child_process";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "GET") return res.status(405).end();
+
+  const type = req.query.type as string | undefined;
+  const repoPath = req.query.path as string | undefined;
+  const owner = req.query.owner as string | undefined;
+  const repo = req.query.repo as string | undefined;
+  const token = req.query.token as string | undefined;
+  const since = req.query.since as string | undefined;
+  const until = req.query.until as string | undefined;
+
+  if (type === "local") {
+    if (!repoPath) return res.status(400).json({ error: "path é obrigatório" });
+    try {
+      const range = since && until ? `${since}..${until}` : since ? `${since}..HEAD` : "";
+      const cmd = `git -C "${repoPath}" log ${range} --format="%H|%s|%aN|%aI" --no-merges`;
+      const raw = execSync(cmd, { encoding: "utf8" });
+      const commits = raw.trim().split("\n").filter(Boolean).map((line) => {
+        const [sha, message, author, date] = line.split("|");
+        return { sha: sha.slice(0, 7), message, author, date, category: categorize(message) };
+      });
+      return res.json({ data: commits });
+    } catch (e: any) {
+      return res.status(500).json({ error: e.message ?? "Erro ao ler repo local" });
+    }
+  }
+
+  if (!owner || !repo) return res.status(400).json({ error: "owner e repo são obrigatórios" });
+
+  const headers: HeadersInit = { Accept: "application/vnd.github+json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  async function resolveSha(ref: string) {
+    if (!ref || ref === "HEAD") return null;
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/tags/${ref}`, { headers });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d.object?.sha ?? null;
+  }
+
+  const params = new URLSearchParams({ per_page: "100" });
+  if (since && since !== "HEAD") {
+    const sha = await resolveSha(since);
+    if (sha) params.set("sha", sha);
+  }
+
+  const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?${params}`, { headers });
+  if (!ghRes.ok) {
+    const err = await ghRes.json();
+    return res.status(ghRes.status).json({ error: err.message });
+  }
+
+  const data = await ghRes.json();
+  const commits = data.map((c: any) => ({
+    sha: c.sha.slice(0, 7),
+    message: c.commit.message.split("\n")[0],
+    author: c.commit.author.name,
+    date: c.commit.author.date,
+    category: categorize(c.commit.message.split("\n")[0]),
+  }));
+
+  return res.json({ data: commits });
+}
+
+function categorize(message: string): string {
+  const m = message.toLowerCase();
+  if (/^feat(\(.+\))?[!:]/.test(m)) return "feat";
+  if (/^fix(\(.+\))?[!:]/.test(m)) return "fix";
+  if (/^chore(\(.+\))?[!:]/.test(m)) return "chore";
+  if (/^docs(\(.+\))?[!:]/.test(m)) return "docs";
+  if (/^refactor(\(.+\))?[!:]/.test(m)) return "refactor";
+  if (/^test(\(.+\))?[!:]/.test(m)) return "test";
+  if (/^style(\(.+\))?[!:]/.test(m)) return "style";
+  if (/\b(fix|corrige|corrigi|bug|erro|falha|conserta|resolve)\b/.test(m)) return "fix";
+  if (/\b(feat|adiciona|adicionei|novo|nova|cria|implementa)\b/.test(m)) return "feat";
+  if (/\b(docs|documenta|readme)\b/.test(m)) return "docs";
+  if (/\b(refactor|refatora|reorganiza)\b/.test(m)) return "refactor";
+  if (/\b(chore|atualiza|remove|limpa|ajusta)\b/.test(m)) return "chore";
+  return "other";
+}
