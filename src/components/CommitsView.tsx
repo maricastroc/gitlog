@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as Select from "@radix-ui/react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faCheck, faPen } from "@fortawesome/free-solid-svg-icons";
 import type { Commit } from "@/dashboard/DashboardClient";
 import PageHeader from "@/components/PageHeader";
 import DatePicker from "@/components/DatePicker";
@@ -51,9 +51,11 @@ function FilterSelect({ value, onValueChange, placeholder, options }: {
   );
 }
 
-type Props = { commits: Commit[] };
+const ALL_CATS = ["feat", "fix", "chore", "docs", "refactor", "style", "test", "other"];
 
-export default function CommitsView({ commits }: Props) {
+type Props = { commits: Commit[]; onCategoryChange: (sha: string, category: string) => void };
+
+export default function CommitsView({ commits, onCategoryChange }: Props) {
   const [search, setSearch]       = useState("");
   const [catFilter, setCat]       = useState(ALL);
   const [authorFilter, setAuthor] = useState(ALL);
@@ -112,6 +114,8 @@ export default function CommitsView({ commits }: Props) {
         <DatePicker value={dateTo}   onChange={(v) => { setDateTo(v);   setPage(1); }} placeholder="Até (data)" />
       </div>
 
+      <p className="text-text-dim text-[11px] font-mono mb-3">dica: clique na badge de categoria para alterá-la</p>
+
       <div className="panel p-0 overflow-hidden">
         {pageCommits.length === 0 ? (
           <p className="text-text-dim text-[13px] font-mono p-6">Nenhum commit encontrado.</p>
@@ -125,9 +129,26 @@ export default function CommitsView({ commits }: Props) {
                 <span className="text-text-dim font-mono text-[11px] w-14 shrink-0 hidden sm:block">{c.sha}</span>
                 <span className="text-text text-[13px] flex-1 truncate">{c.message}</span>
                 <span className="text-text-dim text-[11px] font-mono truncate max-w-[120px] hidden md:block">{c.author}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-semibold shrink-0 ${CAT_TEXT[c.category] ?? "text-text-dim"} ${CAT_BG[c.category] ?? "bg-panel-2"}`}>
-                  {c.category}
-                </span>
+                <Select.Root value={c.category} onValueChange={(val) => onCategoryChange(c.sha, val)}>
+                  <Select.Trigger className={`text-[10px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-semibold shrink-0 cursor-pointer outline-none hover:brightness-125 transition-all ${CAT_TEXT[c.category] ?? "text-text-dim"} ${CAT_BG[c.category] ?? "bg-panel-2"}`}>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Portal>
+                    <Select.Content position="popper" sideOffset={4} className="z-50 bg-panel border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden">
+                      <Select.Viewport className="p-1">
+                        {ALL_CATS.map((cat) => (
+                          <Select.Item key={cat} value={cat}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-mono cursor-pointer outline-none data-[highlighted]:bg-panel-2 data-[highlighted]:text-text data-[state=checked]:text-add">
+                            <Select.ItemIndicator><FontAwesomeIcon icon={faCheck} className="w-2 h-2" /></Select.ItemIndicator>
+                            <Select.ItemText>
+                              <span className={CAT_TEXT[cat] ?? "text-text-dim"}>{cat}</span>
+                            </Select.ItemText>
+                          </Select.Item>
+                        ))}
+                      </Select.Viewport>
+                    </Select.Content>
+                  </Select.Portal>
+                </Select.Root>
               </div>
             ))}
           </div>

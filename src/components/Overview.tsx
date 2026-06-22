@@ -16,9 +16,9 @@ const CAT: Record<string, { text: string; bg: string; dot: string; bar: string }
   other:    { text: "text-text-dim", bg: "bg-panel-2", dot: "bg-text-dim", bar: "bg-text-dim" },
 };
 
-type Props = { commits: Commit[]; onViewAllCommits: () => void };
+type Props = { commits: Commit[]; onViewAllCommits: () => void; onViewChangelog: () => void };
 
-export default function Overview({ commits, onViewAllCommits }: Props) {
+export default function Overview({ commits, onViewAllCommits, onViewChangelog }: Props) {
   const authors = [...new Set(commits.map((c) => c.author))];
   const dates = commits.map((c) => new Date(c.date)).sort((a, b) => a.getTime() - b.getTime());
   const since = dates[0] ? format(dates[0], "d MMM yyyy", { locale: ptBR }) : "—";
@@ -38,13 +38,6 @@ export default function Overview({ commits, onViewAllCommits }: Props) {
     { label: "NÃO CATEGORIZADOS", count: byCat["other"] ?? 0, color: "text-text-dim" },
   ];
 
-  function copyChangelog() {
-    const groups: Record<string, Commit[]> = {};
-    commits.forEach((c) => { if (!groups[c.category]) groups[c.category] = []; groups[c.category].push(c); });
-    const lines = ["# Changelog\n", ...Object.entries(groups).flatMap(([cat, cs]) => [`## ${cat}`, ...cs.map((c) => `- ${c.message} (${c.sha})`), ""])];
-    navigator.clipboard.writeText(lines.join("\n"));
-  }
-
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
@@ -52,7 +45,7 @@ export default function Overview({ commits, onViewAllCommits }: Props) {
           title="Visão geral do período"
           description={`${commits.length} commits · ${authors.length} ${authors.length === 1 ? "autor" : "autores"} · ${since} — ${until}`}
         />
-        <button onClick={copyChangelog} className="btn mt-1">◎ gerar changelog</button>
+        <button onClick={onViewChangelog} className="btn mt-1">◎ gerar changelog</button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">

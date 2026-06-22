@@ -2,13 +2,19 @@
 
 import type { Settings } from "@/dashboard/DashboardClient";
 import { useState } from "react";
+import * as Select from "@radix-ui/react-select";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "@/components/PageHeader";
 
 const CAT_STYLE: Record<string, string> = {
-  feat:  "text-add bg-add-dim border-add",
-  fix:   "text-fix bg-fix-dim border-fix",
-  chore: "text-chore bg-chore-dim border-chore",
-  docs:  "text-docs bg-docs-dim border-docs",
+  feat:     "text-add   bg-add-dim   border-add",
+  fix:      "text-fix   bg-fix-dim   border-fix",
+  chore:    "text-chore bg-chore-dim border-chore",
+  docs:     "text-docs  bg-docs-dim  border-docs",
+  refactor: "text-chore bg-chore-dim border-chore",
+  style:    "text-style bg-style-dim border-style",
+  test:     "text-test  bg-test-dim  border-test",
 };
 
 type Props = { settings: Settings; setSettings: (s: Settings) => void };
@@ -72,10 +78,27 @@ export default function SettingsView({ settings, setSettings }: Props) {
           </div>
 
           <div className="flex gap-2">
-            <select value={selectedCat} onChange={(e) => setSelectedCat(e.target.value)}
-              className="bg-panel-2 border border-line rounded-[var(--radius-sm)] px-2.5 py-2 text-xs text-text font-mono cursor-pointer outline-none">
-              {Object.keys(settings.keywords).map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <Select.Root value={selectedCat} onValueChange={setSelectedCat}>
+              <Select.Trigger className="flex items-center gap-2 bg-panel-2 border border-line rounded-[var(--radius-sm)] px-2.5 py-2 text-xs text-text font-mono cursor-pointer outline-none hover:border-text-dim transition-colors">
+                <Select.Value />
+                <Select.Icon><FontAwesomeIcon icon={faChevronDown} className="w-2 h-2 text-text-dim" /></Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Content position="popper" sideOffset={4} className="z-50 bg-panel-2 border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden">
+                  <Select.Viewport className="p-1">
+                    {Object.keys(settings.keywords).map((c) => (
+                      <Select.Item key={c} value={c}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-mono cursor-pointer outline-none data-[highlighted]:bg-panel data-[highlighted]:text-text data-[state=checked]:text-add ${CAT_STYLE[c] ? "" : "text-text-dim"}`}>
+                        <Select.ItemIndicator><FontAwesomeIcon icon={faCheck} className="w-2 h-2" /></Select.ItemIndicator>
+                        <Select.ItemText>
+                          <span className={CAT_STYLE[c]?.split(" ")[0] ?? "text-text-dim"}>{c}</span>
+                        </Select.ItemText>
+                      </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
             <input type="text" placeholder="nova palavra-chave..." value={newKeyword}
               onChange={(e) => setNewKeyword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addKeyword()}

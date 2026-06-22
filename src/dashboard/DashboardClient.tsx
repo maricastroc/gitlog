@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRecentRepos } from "@/hooks/useRecentRepos";
 import Sidebar from "@/components/Sidebar";
 import SelectRepo from "@/components/SelectRepo";
 import Overview from "@/components/Overview";
@@ -16,10 +17,13 @@ export type Settings = { keywords: Record<string, string[]>; conventionalCommits
 
 const DEFAULT_SETTINGS: Settings = {
   keywords: {
-    feat:  ["adiciona", "implementa", "cria", "nova"],
-    fix:   ["corrige", "conserta", "resolve", "trata"],
-    chore: ["atualiza", "ajusta", "remove", "limpa"],
-    docs:  ["documenta", "comenta", "readme"],
+    feat:     ["adiciona", "implementa", "cria", "nova"],
+    fix:      ["corrige", "conserta", "resolve", "trata"],
+    chore:    ["atualiza", "ajusta", "remove", "limpa"],
+    docs:     ["documenta", "comenta", "readme"],
+    refactor: ["refatora", "reorganiza"],
+    style:    ["estilo", "layout", "css"],
+    test:     ["teste", "testa", "spec"],
   },
   conventionalCommits: true, ignoreMerge: true, categorizeByFile: true, includeSquash: false,
 };
@@ -77,9 +81,22 @@ export default function DashboardClient() {
   const [commits, setCommits] = useState<Commit[]>([]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [welcomed, setWelcomed] = useState(false);
+  const { recents, add: addRecent } = useRecentRepos();
 
   function handleRepoLoaded(info: RepoInfo, data: Commit[]) {
-    setRepoInfo(info); setCommits(data); setView("overview");
+    setRepoInfo(info);
+    setCommits(data);
+    setView("overview");
+    addRecent({
+      label: info.label,
+      type: info.type,
+      url:  info.type === "remote" ? `https://github.com/${info.owner}/${info.repo}` : undefined,
+      path: info.path,
+    });
+  }
+
+  function handleCategoryChange(sha: string, category: string) {
+    setCommits((prev) => prev.map((c) => c.sha === sha ? { ...c, category } : c));
   }
 
   function handleSetView(v: View) {
@@ -98,11 +115,11 @@ export default function DashboardClient() {
 
         {/* SelectRepo sempre montado para preservar estado dos inputs */}
         <div className={showWelcome || view !== "select" ? "hidden" : ""}>
-          <SelectRepo onLoaded={handleRepoLoaded} />
+          <SelectRepo onLoaded={handleRepoLoaded} recents={recents} />
         </div>
 
-        {view === "overview"  && repoInfo && <Overview commits={commits} onViewAllCommits={() => handleSetView("commits")} />}
-        {view === "commits"   && repoInfo && <CommitsView commits={commits} />}
+        {view === "overview"  && repoInfo && <Overview commits={commits} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}
+        {view === "commits"   && repoInfo && <CommitsView commits={commits} onCategoryChange={handleCategoryChange} />}
         {view === "changelog" && repoInfo && <ChangelogView commits={commits} repoInfo={repoInfo} />}
         {view === "authors"   && repoInfo && <AuthorView commits={commits} />}
         {view === "settings"  && <SettingsView settings={settings} setSettings={setSettings} />}

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLock, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faChevronRight, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import type { Commit, RepoInfo } from "@/dashboard/DashboardClient";
+import type { RecentRepo } from "@/hooks/useRecentRepos";
 import type { AxiosError } from "axios";
 import { githubApi } from "@/lib/axios";
 import useRequest from "@/hooks/useRequest";
@@ -14,7 +15,7 @@ import TagSelect from "@/components/TagSelect";
 import RepoPreviewPanel, { type RepoPreview } from "@/components/RepoPreviewPanel";
 import PageHeader from "@/components/PageHeader";
 
-type Props = { onLoaded: (info: RepoInfo, commits: Commit[]) => void };
+type Props = { onLoaded: (info: RepoInfo, commits: Commit[]) => void; recents?: RecentRepo[] };
 
 function parseRemote(url: string) {
   const match = url.match(/github\.com[/:]([^/]+)\/([^/\s.]+)/);
@@ -24,7 +25,7 @@ function parseRemote(url: string) {
   return null;
 }
 
-export default function SelectRepo({ onLoaded }: Props) {
+export default function SelectRepo({ onLoaded, recents = [] }: Props) {
   const [tab, setTab]             = useState<"remote" | "local">("remote");
   const [repoUrl, setRepoUrl]     = useState("");
   const [token, setToken]         = useState("");
@@ -175,6 +176,27 @@ export default function SelectRepo({ onLoaded }: Props) {
               </Button>
               {error && <p className="text-red-400 text-sm">{error}</p>}
             </div>
+
+            {recents.length > 0 && (
+              <div className="mt-4">
+                <p className="text-text-dim text-[10px] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faClockRotateLeft} className="w-2.5 h-2.5" />
+                  Recentes
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {recents.map((r) => (
+                    <button key={r.url ?? r.path} onClick={() => {
+                      if (r.type === "remote" && r.url) { setTab("remote"); setRepoUrl(r.url); }
+                      if (r.type === "local"  && r.path) { setTab("local");  setLocalPath(r.path); }
+                    }}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-panel-2 border border-line text-left hover:border-text-dim transition-colors cursor-pointer">
+                      <span className="text-add text-[10px] font-mono shrink-0">{r.type === "remote" ? "gh" : "local"}</span>
+                      <span className="text-text text-[12px] font-mono truncate">{r.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
 
