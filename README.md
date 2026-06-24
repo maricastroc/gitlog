@@ -5,7 +5,7 @@
 
 A full-stack changelog generator that turns Git commit history into structured, exportable changelogs — built with Next.js, TypeScript, and the GitHub API.
 
-[Live demo →](https://maricastroc-gitlog.vercel.app/)
+[Live demo →](https://gitlog.marianacastro.dev/)
 
 ---
 
