@@ -2,42 +2,17 @@
 
 import type { Commit, RepoInfo, Ref } from "@/types";
 import { useState } from "react";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import PageHeader from "@/components/PageHeader";
 import ReleaseDiff from "@/components/ReleaseDiff";
 import CategoryBadge from "@/components/CategoryBadge";
 import { catStyle } from "@/lib/categoryStyles";
-import { groupBy } from "@/lib/commitStats";
+import { groupBy, lastCommitAgo, buildTimeline } from "@/lib/commitStats";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faCheck, faScroll, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
 type Props = { commits: Commit[]; repoInfo: RepoInfo; refs?: Ref[]; onViewAllCommits: () => void; onViewChangelog: () => void };
-
-function lastCommitAgo(commits: Commit[], category: string): string | null {
-  const filtered = commits.filter((c) => c.category === category);
-
-  if (!filtered.length) return null;
-
-  const latest = filtered.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b);
-
-  return formatDistanceToNow(new Date(latest.date), { addSuffix: true, locale: enUS });
-}
-
-function buildTimeline(commits: Commit[]): { label: string; count: number }[] {
-  const buckets: Record<string, number> = {};
-
-  commits.forEach((c) => {
-    const key = format(new Date(c.date), "MMM d", { locale: enUS });
-    buckets[key] = (buckets[key] ?? 0) + 1;
-  });
-
-  const sorted = Object.entries(buckets).sort(
-    (a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime()
-  );
-
-  return sorted.slice(-20).map(([label, count]) => ({ label, count }));
-}
 
 export default function Overview({ commits, repoInfo, refs = [], onViewAllCommits, onViewChangelog }: Props) {
   const authors = [...new Set(commits.map((c) => c.author))];
@@ -69,8 +44,6 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
   const sortedCats    = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
 
   const sortedAuthors = Object.entries(byAuthor).sort((a, b) => b[1] - a[1]);
-
-  const maxCat = sortedCats[0]?.[1] ?? 1;
 
   const allRecent = [...commits].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
