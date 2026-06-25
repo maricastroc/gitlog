@@ -12,7 +12,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 type CompareState =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "done"; commits: Commit[]; from: string; to: string }
+  | { status: "done"; commits: Commit[]; from: string; to: string; truncated: boolean }
   | { status: "error"; message: string };
 
 type Props = { commits: Commit[]; repoInfo: RepoInfo; refs: Ref[] };
@@ -61,8 +61,14 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
         ...(to && to !== "HEAD" && { until: to }),
       };
       if (repoInfo.token) params.token = repoInfo.token;
-      const res = await api.get<{ data: Commit[] }>("/commits", { params });
-      setCompareState({ status: "done", commits: res.data.data ?? [], from, to });
+      const res = await api.get<{ data: Commit[]; truncated?: boolean }>("/commits", { params });
+      setCompareState({
+        status: "done",
+        commits: res.data.data ?? [],
+        from,
+        to,
+        truncated: res.data.truncated ?? false,
+      });
     } catch {
       setCompareState({ status: "error", message: "Failed to fetch comparison range." });
     }
@@ -90,7 +96,7 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
         <p className="text-text-dim text-[10px] uppercase tracking-widest">Release diff</p>
         <button
           onClick={handleClose}
-          className="text-text-dim text-[11px] hover:text-text cursor-pointer"
+          className="text-text-dim text-base hover:text-text cursor-pointer px-1"
         >
           ✕
         </button>
@@ -137,6 +143,19 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
 
       {compareState.status === "error" && (
         <p className="text-red-400 text-[12px] font-mono">{compareState.message}</p>
+      )}
+
+      {compareState.status === "done" && compareState.truncated && (
+        <p
+          className="text-[11px] font-mono text-[var(--color-fix)] mb-3"
+          style={{
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 6,
+            padding: "6px 10px",
+          }}
+        >
+          Showing the first 1,000 commits. Use a narrower range to see the full history.
+        </p>
       )}
 
       {compareState.status === "done" && (
