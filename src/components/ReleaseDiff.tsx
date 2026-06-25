@@ -103,7 +103,7 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
       </div>
 
       <div className="flex flex-wrap gap-3 items-end mb-4">
-        <div className="flex flex-col gap-1 w-56">
+        <div className="flex flex-col gap-1 flex-1 min-w-40">
           <label className="text-text-dim text-[10px] uppercase tracking-widest">
             From (baseline)
           </label>
@@ -118,7 +118,7 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
             />
           )}
         </div>
-        <div className="flex flex-col gap-1 w-48">
+        <div className="flex flex-col gap-1 flex-1 min-w-36">
           <label className="text-text-dim text-[10px] uppercase tracking-widest">To</label>
           {refsLoading ? (
             <div className="w-full h-[46px] bg-panel-2 border border-line rounded animate-pulse" />
