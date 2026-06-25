@@ -16,33 +16,44 @@ type Props = { commits: Commit[]; repoInfo: RepoInfo; refs?: Ref[]; onViewAllCom
 
 function lastCommitAgo(commits: Commit[], category: string): string | null {
   const filtered = commits.filter((c) => c.category === category);
+
   if (!filtered.length) return null;
+
   const latest = filtered.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b);
+
   return formatDistanceToNow(new Date(latest.date), { addSuffix: true, locale: enUS });
 }
 
 function buildTimeline(commits: Commit[]): { label: string; count: number }[] {
   const buckets: Record<string, number> = {};
+
   commits.forEach((c) => {
     const key = format(new Date(c.date), "MMM d", { locale: enUS });
     buckets[key] = (buckets[key] ?? 0) + 1;
   });
+
   const sorted = Object.entries(buckets).sort(
     (a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime()
   );
-  // keep last 20 buckets max
+
   return sorted.slice(-20).map(([label, count]) => ({ label, count }));
 }
 
 export default function Overview({ commits, repoInfo, refs = [], onViewAllCommits, onViewChangelog }: Props) {
   const authors = [...new Set(commits.map((c) => c.author))];
+
   const dates = commits.map((c) => new Date(c.date)).sort((a, b) => a.getTime() - b.getTime());
+
   const since = dates[0] ? format(dates[0], "d MMM yyyy", { locale: enUS }) : "—";
+
   const until = dates.at(-1) ? format(dates.at(-1)!, "d MMM yyyy", { locale: enUS }) : "—";
 
   const [hoveredBar, setHoveredBar] = useState<{ label: string; count: number; index: number } | null>(null);
+
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+
   const [copied, setCopied] = useState(false);
+
 
   function handleShare() {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -52,16 +63,23 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
   }
 
   const byCat    = groupBy(commits, "category");
+
   const byAuthor = groupBy(commits, "author");
+
   const sortedCats    = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+
   const sortedAuthors = Object.entries(byAuthor).sort((a, b) => b[1] - a[1]);
+
   const maxCat = sortedCats[0]?.[1] ?? 1;
+
   const allRecent = [...commits].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
   const recent = selectedDay
     ? allRecent.filter((c) => format(new Date(c.date), "MMM d", { locale: enUS }) === selectedDay)
     : allRecent.slice(0, 7);
 
   const timeline = buildTimeline(commits);
+
   const maxBar = Math.max(...timeline.map((t) => t.count), 1);
 
   const statCards = [
@@ -77,7 +95,6 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
 
   return (
     <div className="w-full">
-      {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
         <PageHeader
           title="Period overview"
@@ -107,7 +124,6 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
         </div>
       </div>
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
         {statCards.map((s) => {
           const ago = lastCommitAgo(commits, s.cat);

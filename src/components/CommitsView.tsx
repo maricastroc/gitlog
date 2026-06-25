@@ -8,6 +8,7 @@ import * as Select from "@radix-ui/react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
 import type { Commit } from "@/types";
+import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 import DatePicker from "@/components/DatePicker";
 
@@ -102,7 +103,7 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <PageHeader title="Commits" description={`${filtered.length} de ${commits.length} commits`} />
         {hasFilters && (
-          <button onClick={resetFilters} className="btn ghost shrink-0 sm:mt-1">clear filters</button>
+          <Button variant="ghost" onClick={resetFilters} className="shrink-0 sm:mt-1">clear filters</Button>
         )}
       </div>
 
@@ -165,10 +166,8 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
         <div className="flex items-center justify-between mt-4">
           <span className="text-text-dim text-[12px] font-mono">page {currentPage} of {totalPages}</span>
           <div className="flex gap-2">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}
-              className="btn ghost px-3 py-1.5 text-[12px] disabled:opacity-40 disabled:cursor-not-allowed">← previous</button>
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-              className="btn ghost px-3 py-1.5 text-[12px] disabled:opacity-40 disabled:cursor-not-allowed">next →</button>
+            <Button variant="ghost" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 text-sm">← previous</Button>
+            <Button variant="ghost" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1.5 text-sm">next →</Button>
           </div>
         </div>
       )}

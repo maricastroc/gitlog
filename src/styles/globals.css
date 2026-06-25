@@ -3,6 +3,29 @@
 @tailwind utilities;
 
 :root {
+  /* radius */
+  --radius-sm:  4px;
+  --radius-md:  6px;
+  --radius-lg:  8px;
+  --radius-xl:  12px;
+  --radius-full: 9999px;
+
+  /* font sizes */
+  --text-micro:  9px;
+  --text-label:  10px;
+  --text-caption: 11px;
+  --text-sm:     12px;
+  --text-base:   13px;
+  --text-md:     15px;
+  --text-lg:     22px;
+  --text-xl:     26px;
+
+  /* shadows */
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.25);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.35);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.5);
+
+  /* colors */
   --color-bg:        #12161c;
   --color-panel:     #161d27;
   --color-panel-2:   #1c2733;
@@ -55,22 +78,6 @@ a {
   padding: 18px 20px;
 }
 
-.btn {
-  background: var(--color-add-dim);
-  color: var(--color-add);
-  border: 1px solid var(--color-add);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  padding: 8px 14px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.btn.ghost {
-  background: transparent;
-  color: var(--color-text-dim);
-  border: 1px solid var(--color-line);
-}
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

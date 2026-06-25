@@ -6,13 +6,16 @@ import * as Select from "@radix-ui/react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "@/components/PageHeader";
+import Button from "@/components/Button";
 import { catStyle } from "@/lib/categoryStyles";
 
 type Props = { settings: Settings; setSettings: (s: Settings) => void };
 
 export default function SettingsView({ settings, setSettings }: Props) {
   const [newKeyword, setNewKeyword] = useState("");
+
   const [selectedCat, setSelectedCat] = useState("feat");
+
   const [saved, setSaved] = useState(false);
 
   function addKeyword() {
@@ -46,7 +49,6 @@ export default function SettingsView({ settings, setSettings }: Props) {
       <PageHeader title="Categorization settings" description="Adjust the heuristic used to classify commits." />
 
       <div className="grid grid-cols-2 gap-3">
-        {/* keywords */}
         <div className="panel">
           <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">Keywords by category</p>
 
@@ -94,11 +96,10 @@ export default function SettingsView({ settings, setSettings }: Props) {
               onChange={(e) => setNewKeyword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addKeyword()}
               className="flex-1 bg-panel-2 border border-line rounded-[var(--radius-sm)] px-2.5 py-2 text-xs text-text font-mono outline-none focus:border-text-dim placeholder:text-text-dim" />
-            <button onClick={addKeyword} className="btn ghost px-3 py-2 text-xs">+ add</button>
+            <Button variant="ghost" onClick={addKeyword} className="px-3 py-2 text-sm">+ add</Button>
           </div>
         </div>
 
-        {/* toggles */}
         <div className="panel flex flex-col">
           <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">Parser behavior</p>
 
@@ -117,9 +118,9 @@ export default function SettingsView({ settings, setSettings }: Props) {
             ))}
           </div>
 
-          <button onClick={handleSave} className="btn mt-6 w-full py-2.5 text-[13px]">
+          <Button onClick={handleSave} className="mt-6 w-full py-2.5">
             {saved ? "✓ settings saved" : "save settings"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -19,10 +19,16 @@ type Props = { commits: Commit[]; repoInfo: RepoInfo; refs: Ref[] };
 
 export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Props) {
   const [open, setOpen] = useState(false);
+
   const [from, setFrom] = useState("");
+
   const [to, setTo] = useState("HEAD");
+
+
   const [compareState, setCompareState] = useState<CompareState>({ status: "idle" });
+
   const [extraRefs, setExtraRefs] = useState<Ref[]>([]);
+
   const [refsLoading, setRefsLoading] = useState(false);
 
   const refs = initialRefs.length > 0 ? initialRefs : extraRefs;
@@ -31,14 +37,22 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
 
   async function handleOpen() {
     setOpen(true);
+
     if (refs.length > 0 || repoInfo.type !== "remote") return;
+
     setRefsLoading(true);
+
     try {
       const params: Record<string, string> = { type: "remote", owner: repoInfo.owner!, repo: repoInfo.repo! };
+      
       if (repoInfo.token) params.token = repoInfo.token;
+      
       const res = await api.get<{ data: Ref[] }>("/tags", { params });
+      
       const fetched = res.data.data ?? [];
+      
       setExtraRefs(fetched);
+      
       if (!from && fetched[0]) setFrom(fetched[0].name);
     } catch (e) {
       console.error("Failed to fetch refs for compare:", e);
@@ -48,15 +62,20 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
 
   async function handleCompare() {
     if (repoInfo.type !== "remote") return;
+
     setCompareState({ status: "loading" });
+
     try {
       const params: Record<string, string> = {
         type: "remote", owner: repoInfo.owner!, repo: repoInfo.repo!,
         ...(from && { since: from }),
         ...(to && to !== "HEAD" && { until: to }),
       };
+
       if (repoInfo.token) params.token = repoInfo.token;
+
       const res = await api.get<{ data: Commit[] }>("/commits", { params });
+
       setCompareState({ status: "done", commits: res.data.data ?? [], from, to });
     } catch {
       setCompareState({ status: "error", message: "Failed to fetch comparison range." });
@@ -127,9 +146,13 @@ function DiffResult({ commits, baseline, repoInfo, baseFrom, baseTo }: {
   commits: Commit[]; baseline: Commit[]; repoInfo: RepoInfo; baseFrom: string; baseTo: string;
 }) {
   const currTotal = commits.length || 1;
+
   const baseTotal = baseline.length || 1;
+
   const currByCat = groupBy(commits,  "category");
+
   const baseByCat = groupBy(baseline, "category");
+  
   const allCats = [...new Set([...Object.keys(currByCat), ...Object.keys(baseByCat)])].sort();
 
   const currLabel = repoInfo.from ? `${repoInfo.from} → ${repoInfo.to ?? "HEAD"}` : "current";

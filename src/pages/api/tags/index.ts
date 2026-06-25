@@ -2,17 +2,22 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { execSync } from "child_process";
 import type { Ref } from "@/types";
 
+const GITHUB_NAME_RE = /^[a-zA-Z0-9_.-]{1,100}$/;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
 
-  const type = req.query.type as string | undefined;
-  const path = req.query.path as string | undefined;
+  const type  = req.query.type as string | undefined;
+  const path  = req.query.path as string | undefined;
   const owner = req.query.owner as string | undefined;
-  const repo = req.query.repo as string | undefined;
+  const repo  = req.query.repo as string | undefined;
   const token = req.query.token as string | undefined;
 
   if (type === "local") {
     if (!path) return res.status(400).json({ error: "path is required" });
+    if (path.includes('"') || path.includes('\0')) {
+      return res.status(400).json({ error: "Invalid path" });
+    }
     try {
       const rawTags     = execSync(`git -C "${path}" tag --sort=-creatordate`, { encoding: "utf8" });
       const rawBranches = execSync(`git -C "${path}" branch --format="%(refname:short)"`, { encoding: "utf8" });
@@ -25,6 +30,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (!owner || !repo) return res.status(400).json({ error: "owner and repo are required" });
+  if (!GITHUB_NAME_RE.test(owner) || !GITHUB_NAME_RE.test(repo)) {
+    return res.status(400).json({ error: "Invalid owner or repo name" });
+  }
+
   const headers: HeadersInit = { Accept: "application/vnd.github+json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -35,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!tagsRes.ok) {
     const err = await tagsRes.json() as { message?: string };
-    return res.status(tagsRes.status).json({ error: err.message });
+    return res.status(tagsRes.status).json({ error: err.message ?? "GitHub API error" });
   }
 
   const tagsData     = await tagsRes.json() as { name: string }[];

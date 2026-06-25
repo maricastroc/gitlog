@@ -8,6 +8,7 @@ import { enUS } from "date-fns/locale";
 import * as Popover from "@radix-ui/react-popover";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
+import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 
 import { catStyle, CAT_ORDER } from "@/lib/categoryStyles";
@@ -159,10 +160,10 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
         <PageHeader title="Generated changelog" description={intervalLabel} />
         <div className="flex flex-wrap gap-2 sm:mt-1 shrink-0">
-          <button onClick={handleCopy} className="btn ghost">{copied ? "✓ copied!" : "copy markdown"}</button>
-          <button onClick={() => handleExport("md")}   className="btn ghost">export .md</button>
-          <button onClick={() => handleExport("txt")}  className="btn ghost">export .txt</button>
-          <button onClick={() => handleExport("json")} className="btn">export .json</button>
+          <Button variant="ghost" onClick={handleCopy}>{copied ? "✓ copied!" : "copy markdown"}</Button>
+          <Button variant="ghost" onClick={() => handleExport("md")}>export .md</Button>
+          <Button variant="ghost" onClick={() => handleExport("txt")}>export .txt</Button>
+          <Button onClick={() => handleExport("json")}>export .json</Button>
         </div>
       </div>
 

@@ -18,8 +18,11 @@ import type { Commit, RepoInfo, View, Ref } from "@/types";
 
 async function fetchRemoteCommits(owner: string, repo: string, from?: string): Promise<Commit[]> {
   const params: Record<string, string> = { type: "remote", owner, repo };
+
   if (from) params.since = from;
+
   const res = await api.get<{ data: Commit[] }>("/commits", { params });
+
   return res.data.data ?? [];
 }
 
@@ -68,10 +71,15 @@ export default function DashboardClient() {
 
   function handleRepoLoaded(info: RepoInfo, data: Commit[], refsOrUrl: Ref[] | boolean = true, updateUrl = true) {
     setRepoInfo(info);
+
     setCommits(data);
+
     if (Array.isArray(refsOrUrl)) setRefs(refsOrUrl);
+
     const shouldUpdateUrl = Array.isArray(refsOrUrl) ? updateUrl : refsOrUrl;
+
     setView("overview");
+
     addRecent({
       label: info.label,
       type: info.type,
@@ -80,6 +88,7 @@ export default function DashboardClient() {
       from: info.from,
       to:   info.to,
     });
+
     if (shouldUpdateUrl && info.type === "remote") {
       router.replace(
         { query: { repo: `${info.owner}/${info.repo}`, from: info.from ?? "", to: info.to ?? "HEAD", view: "overview" } },
@@ -91,10 +100,15 @@ export default function DashboardClient() {
 
   function handleQuickLoad(recent: import("@/hooks/useRecentRepos").RecentRepo) {
     if (recent.type !== "remote" || !recent.url) return;
+
     const match = recent.url.match(/github\.com\/([^/]+)\/([^/]+)/);
+
     if (!match) return;
+
     const [, owner, repo] = match;
+
     setWelcomed(true);
+    
     fetchRemoteCommits(owner, repo, recent.from).then((data) => {
       handleRepoLoaded(
         { type: "remote", label: recent.label, owner, repo, from: recent.from ?? "", to: recent.to ?? "HEAD" },
@@ -124,7 +138,6 @@ export default function DashboardClient() {
       <main className="flex-1 px-4 py-6 md:px-10 md:py-10 overflow-y-auto pb-20 md:pb-10">
         {showWelcome && <WelcomeScreen onStart={() => setWelcomed(true)} />}
 
-        {/* SelectRepo sempre montado para preservar estado dos inputs */}
         <div className={showWelcome || view !== "select" ? "hidden" : ""}>
           <SelectRepo onLoaded={handleRepoLoaded} onQuickLoad={handleQuickLoad} recents={recents} keywords={settings.keywords} />
         </div>
