@@ -6,19 +6,10 @@ import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
 import PageHeader from "@/components/PageHeader";
 import ReleaseDiff from "@/components/ReleaseDiff";
+import CategoryBadge from "@/components/CategoryBadge";
+import { catStyle } from "@/lib/categoryStyles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faCheck } from "@fortawesome/free-solid-svg-icons";
-
-const CAT: Record<string, { text: string; bg: string; dot: string; bar: string; accent: string }> = {
-  feat:     { text: "text-add",      bg: "bg-add-dim",   dot: "bg-add",      bar: "bg-add",      accent: "border-add"      },
-  fix:      { text: "text-fix",      bg: "bg-fix-dim",   dot: "bg-fix",      bar: "bg-fix",      accent: "border-fix"      },
-  chore:    { text: "text-chore",    bg: "bg-chore-dim", dot: "bg-chore",    bar: "bg-chore",    accent: "border-chore"    },
-  docs:     { text: "text-docs",     bg: "bg-docs-dim",  dot: "bg-docs",     bar: "bg-docs",     accent: "border-docs"     },
-  refactor: { text: "text-chore",    bg: "bg-chore-dim", dot: "bg-chore",    bar: "bg-chore",    accent: "border-chore"    },
-  style:    { text: "text-style",    bg: "bg-style-dim", dot: "bg-style",    bar: "bg-style",    accent: "border-style"    },
-  test:     { text: "text-test",     bg: "bg-test-dim",  dot: "bg-test",     bar: "bg-test",     accent: "border-test"     },
-  other:    { text: "text-text-dim", bg: "bg-panel-2",   dot: "bg-text-dim", bar: "bg-text-dim", accent: "border-line"     },
-};
 
 type Props = { commits: Commit[]; repoInfo: RepoInfo; refs?: Ref[]; onViewAllCommits: () => void; onViewChangelog: () => void };
 
@@ -120,13 +111,13 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
         {statCards.map((s) => {
           const ago = lastCommitAgo(commits, s.cat);
           const pct = commits.length ? Math.round((s.count / commits.length) * 100) : 0;
-          const style = CAT[s.cat];
+          const style = catStyle(s.cat);
           return (
-            <div key={s.label} className={`panel border-l-2 ${style?.accent ?? "border-line"}`}>
-              <p className={`text-[40px] leading-none font-bold font-display ${style?.text ?? "text-text-dim"}`}>{s.count}</p>
+            <div key={s.label} className={`panel border-l-2 ${style.accent}`}>
+              <p className={`text-[40px] leading-none font-bold font-display ${style.text}`}>{s.count}</p>
               <p className="text-text-dim text-[10px] tracking-widest mt-1 uppercase">{s.label}</p>
               <div className="mt-3 h-1 bg-panel-2 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${style?.bar ?? "bg-text-dim"}`} style={{ width: `${pct}%` }} />
+                <div className={`h-full rounded-full ${style.bar}`} style={{ width: `${pct}%` }} />
               </div>
               {ago && (
                 <p className="text-text-dim text-[10px] font-mono mt-2 truncate">last: {ago}</p>
@@ -155,12 +146,10 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
             <div className="flex flex-col gap-2.5">
               {recent.map((c) => (
                 <div key={c.sha} className="flex items-center gap-2.5">
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${CAT[c.category]?.dot ?? "bg-text-dim"}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${catStyle(c.category).dot}`} />
                   <span className="text-text-dim text-[11px] w-13 shrink-0">{format(new Date(c.date), "d MMM", { locale: enUS })}</span>
                   <span className="text-text text-xs flex-1 truncate">{c.message}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-[var(--radius-pill)] uppercase tracking-wider font-semibold shrink-0 ${CAT[c.category]?.text ?? "text-text-dim"} ${CAT[c.category]?.bg ?? ""}`}>
-                    {c.category}
-                  </span>
+                  <CategoryBadge category={c.category} />
                 </div>
               ))}
             </div>
@@ -219,7 +208,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
                     <span className="text-text-dim">{Math.round((count / commits.length) * 100)}%</span>
                   </div>
                   <div className="h-1 bg-panel-2 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${CAT[cat]?.bar ?? "bg-text-dim"}`} style={{ width: `${(count / maxCat) * 100}%` }} />
+                    <div className={`h-full rounded-full ${catStyle(cat).bar}`} style={{ width: `${(count / maxCat) * 100}%` }} />
                   </div>
                 </div>
               ))}

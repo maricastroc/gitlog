@@ -6,16 +6,7 @@ import * as Select from "@radix-ui/react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "@/components/PageHeader";
-
-const CAT_STYLE: Record<string, string> = {
-  feat:     "text-add   bg-add-dim   border-add",
-  fix:      "text-fix   bg-fix-dim   border-fix",
-  chore:    "text-chore bg-chore-dim border-chore",
-  docs:     "text-docs  bg-docs-dim  border-docs",
-  refactor: "text-chore bg-chore-dim border-chore",
-  style:    "text-style bg-style-dim border-style",
-  test:     "text-test  bg-test-dim  border-test",
-};
+import { catStyle } from "@/lib/categoryStyles";
 
 type Props = { settings: Settings; setSettings: (s: Settings) => void };
 
@@ -62,7 +53,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
           <div className="flex flex-col gap-3 mb-4">
             {Object.entries(settings.keywords).map(([cat, kws]) => (
               <div key={cat} className="flex items-start gap-2.5">
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[var(--radius-sm)] uppercase tracking-wider border shrink-0 mt-0.5 ${CAT_STYLE[cat] ?? "text-text-dim bg-panel-2 border-line"}`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[var(--radius-sm)] uppercase tracking-wider border shrink-0 mt-0.5 ${catStyle(cat).text} ${catStyle(cat).bg} ${catStyle(cat).accent}`}>
                   {cat}
                 </span>
                 <div className="flex flex-wrap gap-1.5 flex-1">
@@ -88,10 +79,10 @@ export default function SettingsView({ settings, setSettings }: Props) {
                   <Select.Viewport className="p-1">
                     {Object.keys(settings.keywords).map((c) => (
                       <Select.Item key={c} value={c}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-mono cursor-pointer outline-none data-[highlighted]:bg-panel data-[highlighted]:text-text data-[state=checked]:text-add ${CAT_STYLE[c] ? "" : "text-text-dim"}`}>
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-mono cursor-pointer outline-none data-[highlighted]:bg-panel data-[highlighted]:text-text data-[state=checked]:text-add">
                         <Select.ItemIndicator><FontAwesomeIcon icon={faCheck} className="w-2 h-2" /></Select.ItemIndicator>
                         <Select.ItemText>
-                          <span className={CAT_STYLE[c]?.split(" ")[0] ?? "text-text-dim"}>{c}</span>
+                          <span className={catStyle(c).text}>{c}</span>
                         </Select.ItemText>
                       </Select.Item>
                     ))}

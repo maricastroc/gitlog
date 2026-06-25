@@ -4,15 +4,7 @@ import type { Commit } from "@/types";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import PageHeader from "@/components/PageHeader";
-
-const CAT_TEXT: Record<string, string> = {
-  feat: "text-add", fix: "text-fix", chore: "text-chore", docs: "text-docs",
-  refactor: "text-chore", other: "text-text-dim",
-};
-const CAT_BG: Record<string, string> = {
-  feat: "bg-add-dim", fix: "bg-fix-dim", chore: "bg-chore-dim",
-  docs: "bg-docs-dim", other: "bg-transparent",
-};
+import CategoryBadge from "@/components/CategoryBadge";
 
 type Props = { commits: Commit[] };
 
@@ -45,9 +37,7 @@ export default function AuthorView({ commits }: Props) {
                 <div key={c.sha} className="flex items-center gap-2.5 text-xs">
                   <span className="text-text-dim w-12 shrink-0 text-[11px]">{format(new Date(c.date), "d MMM", { locale: enUS })}</span>
                   <span className="text-text flex-1 truncate">{c.message}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-[var(--radius-pill)] uppercase tracking-wider font-semibold shrink-0 ${CAT_TEXT[c.category] ?? "text-text-dim"} ${CAT_BG[c.category] ?? ""}`}>
-                    {c.category}
-                  </span>
+                  <CategoryBadge category={c.category} />
                 </div>
               ))}
               {cs.length > 5 && <p className="text-text-dim text-[11px] mt-1">+ {cs.length - 5} commits</p>}

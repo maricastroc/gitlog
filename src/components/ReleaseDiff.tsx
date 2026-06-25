@@ -5,16 +5,7 @@ import type { Commit, Ref, RepoInfo } from "@/types";
 import { api } from "@/lib/axios";
 import TagSelect from "@/components/TagSelect";
 
-const CAT: Record<string, { text: string; bar: string; accent: string }> = {
-  feat:     { text: "text-add",      bar: "bg-add",      accent: "border-add"   },
-  fix:      { text: "text-fix",      bar: "bg-fix",      accent: "border-fix"   },
-  chore:    { text: "text-chore",    bar: "bg-chore",    accent: "border-chore" },
-  docs:     { text: "text-docs",     bar: "bg-docs",     accent: "border-docs"  },
-  refactor: { text: "text-chore",    bar: "bg-chore",    accent: "border-chore" },
-  style:    { text: "text-style",    bar: "bg-style",    accent: "border-style" },
-  test:     { text: "text-test",     bar: "bg-test",     accent: "border-test"  },
-  other:    { text: "text-text-dim", bar: "bg-text-dim", accent: "border-line"  },
-};
+import { catStyle } from "@/lib/categoryStyles";
 
 type CompareState =
   | { status: "idle" }
@@ -164,16 +155,16 @@ function DiffResult({ commits, baseline, repoInfo, baseFrom, baseTo }: {
           const delta = curr - prev;
           const pctCurr = Math.round((curr / currTotal) * 100);
           const pctPrev = Math.round((prev / baseTotal) * 100);
-          const style = CAT[cat];
+          const style = catStyle(cat);
           const deltaLabel = delta === 0 ? "=" : delta > 0 ? `+${delta}` : `${delta}`;
           const deltaColor = delta > 0 ? "text-add" : delta < 0 ? "text-fix" : "text-text-dim";
           const multiplier = prev > 0 ? (curr / prev).toFixed(1) : null;
 
           return (
-            <div key={cat} className={`rounded-lg border border-line bg-panel p-3 border-l-2 ${style?.accent ?? "border-line"}`}>
-              <p className={`text-[10px] uppercase tracking-widest mb-2 ${style?.text ?? "text-text-dim"}`}>{cat}</p>
+            <div key={cat} className={`rounded-lg border border-line bg-panel p-3 border-l-2 ${style.accent}`}>
+              <p className={`text-[10px] uppercase tracking-widest mb-2 ${style.text}`}>{cat}</p>
               <div className="flex items-baseline gap-1.5">
-                <span className={`text-[28px] leading-none font-bold font-display ${style?.text ?? "text-text-dim"}`}>{curr}</span>
+                <span className={`text-[28px] leading-none font-bold font-display ${style.text}`}>{curr}</span>
                 <span className={`text-[12px] font-mono font-semibold ${deltaColor}`}>{deltaLabel}</span>
               </div>
               <div className="text-text-dim text-[10px] font-mono mt-1">{pctCurr}% vs {pctPrev}% before</div>
@@ -183,8 +174,8 @@ function DiffResult({ commits, baseline, repoInfo, baseFrom, baseTo }: {
                 </div>
               )}
               <div className="mt-2 flex gap-0.5 h-1">
-                <div className={`rounded-full ${style?.bar ?? "bg-text-dim"} opacity-40`} style={{ width: `${pctPrev}%` }} />
-                <div className={`rounded-full ${style?.bar ?? "bg-text-dim"}`} style={{ width: `${Math.abs(pctCurr - pctPrev)}%` }} />
+                <div className={`rounded-full ${style.bar} opacity-40`} style={{ width: `${pctPrev}%` }} />
+                <div className={`rounded-full ${style.bar}`} style={{ width: `${Math.abs(pctCurr - pctPrev)}%` }} />
               </div>
             </div>
           );

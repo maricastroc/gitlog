@@ -10,18 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "@/components/PageHeader";
 
-const CAT_TEXT: Record<string, string> = {
-  feat: "text-add", fix: "text-fix", chore: "text-chore", docs: "text-docs",
-  refactor: "text-chore", style: "text-style", test: "text-test", other: "text-text-dim",
-};
-const CAT_PREFIX: Record<string, string> = {
-  feat: "+", fix: "~", refactor: "~", chore: "·", docs: "·", test: "·", other: "·",
-};
-const CAT_LABEL: Record<string, string> = {
-  feat: "Features", fix: "Bug Fixes", refactor: "Refactors",
-  chore: "Chores", docs: "Docs", test: "Tests", style: "Style", other: "Other",
-};
-const ORDER = ["feat", "fix", "refactor", "chore", "docs", "test", "style", "other"];
+import { catStyle, CAT_ORDER } from "@/lib/categoryStyles";
 
 type Grouping = "none" | "month" | "week";
 
@@ -87,7 +76,7 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
     acc[c.category].push(c);
     return acc;
   }, {});
-  const sorted = ORDER.filter((k) => groups[k]);
+  const sorted = CAT_ORDER.filter((k) => groups[k]);
 
   const authorLabel = selectedAuthors.size === allAuthors.length
     ? "All authors"
@@ -98,7 +87,7 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
   function generateMarkdown() {
     const lines = ["# Changelog\n"];
     sorted.forEach((cat) => {
-      lines.push(`## ${CAT_LABEL[cat] ?? cat}\n`);
+      lines.push(`## ${catStyle(cat).label}\n`);
       const periods = groupByPeriod(groups[cat], grouping);
       periods.forEach(({ period, commits: cs }) => {
         if (period) lines.push(`### ${period}\n`);
@@ -112,8 +101,8 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
   function generatePlainText() {
     const lines = ["CHANGELOG", "=========", ""];
     sorted.forEach((cat) => {
-      lines.push(`${CAT_LABEL[cat] ?? cat}`);
-      lines.push("-".repeat((CAT_LABEL[cat] ?? cat).length));
+      lines.push(`${catStyle(cat).label}`);
+      lines.push("-".repeat((catStyle(cat).label).length));
       const periods = groupByPeriod(groups[cat], grouping);
       periods.forEach(({ period, commits: cs }) => {
         if (period) { lines.push(""); lines.push(`  [${period}]`); }
@@ -133,7 +122,7 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
         sorted.map((cat) => {
           const periods = groupByPeriod(groups[cat], grouping);
           return [cat, {
-            label: CAT_LABEL[cat] ?? cat,
+            label: catStyle(cat).label,
             periods: periods.map(({ period, commits: cs }) => ({
               ...(period && { period }),
               commits: cs.map((c) => ({ sha: c.sha, message: c.message, author: c.author, date: c.date })),
@@ -243,7 +232,7 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
             const periods = groupByPeriod(groups[cat], grouping);
             return (
               <div key={cat}>
-                <p className="text-text-dim text-[10px] uppercase tracking-widest mb-2.5">{CAT_LABEL[cat] ?? cat}</p>
+                <p className="text-text-dim text-[10px] uppercase tracking-widest mb-2.5">{catStyle(cat).label}</p>
                 <div className="flex flex-col gap-4">
                   {periods.map(({ period, commits: cs }) => (
                     <div key={period || "all"}>
@@ -252,8 +241,8 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
                       )}
                       <div className="flex flex-col gap-1.5">
                         {cs.map((c) => (
-                          <div key={c.sha} className={`flex items-baseline gap-2.5 font-mono text-[13px] ${CAT_TEXT[cat] ?? "text-text-dim"}`}>
-                            <span className="shrink-0 w-2.5">{CAT_PREFIX[cat] ?? "·"}</span>
+                          <div key={c.sha} className={`flex items-baseline gap-2.5 font-mono text-[13px] ${catStyle(cat).text}`}>
+                            <span className="shrink-0 w-2.5">{catStyle(cat).prefix}</span>
                             <span className="flex-1">{c.message}</span>
                             <span className="text-text-dim text-[11px] shrink-0">{c.sha}</span>
                           </div>

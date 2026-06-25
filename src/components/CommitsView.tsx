@@ -11,14 +11,7 @@ import type { Commit } from "@/types";
 import PageHeader from "@/components/PageHeader";
 import DatePicker from "@/components/DatePicker";
 
-const CAT_TEXT: Record<string, string> = {
-  feat: "text-add", fix: "text-fix", chore: "text-chore", docs: "text-docs",
-  refactor: "text-chore", style: "text-style", test: "text-test", other: "text-text-dim",
-};
-const CAT_BG: Record<string, string> = {
-  feat: "bg-add-dim", fix: "bg-fix-dim", chore: "bg-chore-dim", docs: "bg-docs-dim",
-  refactor: "bg-chore-dim", style: "bg-style-dim", test: "bg-test-dim", other: "bg-panel-2",
-};
+import { catStyle } from "@/lib/categoryStyles";
 
 const PAGE_SIZE = 25;
 const ALL = "__all__";
@@ -153,7 +146,7 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
                 <span className="text-text text-[13px] flex-1 truncate">{c.message}</span>
                 <span className="text-text-dim text-[11px] font-mono truncate max-w-[120px] hidden md:block">{c.author}</span>
                 <Select.Root value={c.category} onValueChange={(val) => onCategoryChange(c.sha, val)}>
-                  <Select.Trigger className={`text-[10px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-semibold shrink-0 cursor-pointer outline-none hover:brightness-125 transition-all ${CAT_TEXT[c.category] ?? "text-text-dim"} ${CAT_BG[c.category] ?? "bg-panel-2"}`}>
+                  <Select.Trigger className={`text-[10px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-semibold shrink-0 cursor-pointer outline-none hover:brightness-125 transition-all ${catStyle(c.category).text} ${catStyle(c.category).bg}`}>
                     <Select.Value />
                   </Select.Trigger>
                   <Select.Portal>
@@ -164,7 +157,7 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
                             className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] font-mono cursor-pointer outline-none data-[highlighted]:bg-panel-2 data-[highlighted]:text-text data-[state=checked]:text-add">
                             <Select.ItemIndicator><FontAwesomeIcon icon={faCheck} className="w-2 h-2" /></Select.ItemIndicator>
                             <Select.ItemText>
-                              <span className={CAT_TEXT[cat] ?? "text-text-dim"}>{cat}</span>
+                              <span className={catStyle(cat).text}>{cat}</span>
                             </Select.ItemText>
                           </Select.Item>
                         ))}
