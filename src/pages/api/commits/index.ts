@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 import { categorize } from "@/lib/categorize";
 
 const GITHUB_NAME_RE = /^[a-zA-Z0-9_.-]{1,100}$/;
@@ -35,38 +35,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (type === "local") {
     if (!repoPath) return res.status(400).json({ error: "path is required" });
-    if (repoPath.includes('"') || repoPath.includes("\0")) {
-      return res.status(400).json({ error: "Invalid path" });
-    }
     if (since && !SAFE_REF_RE.test(since))
       return res.status(400).json({ error: "Invalid since ref" });
     if (until && !SAFE_REF_RE.test(until))
       return res.status(400).json({ error: "Invalid until ref" });
-    try {
-      const range = since && until ? `${since}..${until}` : since ? `${since}..HEAD` : "";
-      const cmd = `git -C "${repoPath}" log ${range} --format="%H|%s|%aN|%aI"${ignoreMerge ? " --no-merges" : ""}`;
-      const raw = execSync(cmd, { encoding: "utf8" });
-      const commits = raw
-        .trim()
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => {
-          const [sha, message, author, date] = line.split("|");
-          return {
-            sha: sha.slice(0, 7),
-            message,
-            author,
-            date,
-            category: categorize(message, userKeywords, conventionalCommits),
-          };
-        })
-        .filter((c) => !ignoreBots || !BOT_RE.test(c.author));
-      return res.json({ data: commits });
-    } catch (e) {
+    const range = since && until ? `${since}..${until}` : since ? `${since}..HEAD` : "";
+    const gitArgs = ["-C", repoPath, "log"];
+    if (range) gitArgs.push(range);
+    gitArgs.push("--format=%H\x00%s\x00%aN\x00%aI");
+    if (ignoreMerge) gitArgs.push("--no-merges");
+    const result = spawnSync("git", gitArgs, { encoding: "utf8" });
+    if (result.error || result.status !== 0) {
       return res
         .status(500)
-        .json({ error: e instanceof Error ? e.message : "Failed to read local repository" });
+        .json({ error: result.stderr?.trim() || "Failed to read local repository" });
     }
+    const commits = result.stdout
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        const [sha, message, author, date] = line.split("\x00");
+        return {
+          sha: sha.slice(0, 7),
+          message,
+          author,
+          date,
+          category: categorize(message, userKeywords, conventionalCommits),
+        };
+      })
+      .filter((c) => !ignoreBots || !BOT_RE.test(c.author));
+    return res.json({ data: commits });
   }
 
   if (!owner || !repo) return res.status(400).json({ error: "owner and repo are required" });
@@ -147,7 +146,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const err = (await r.json()) as { message?: string };
         return { data: [], status: r.status, error: err.message ?? "GitHub API error" };
       }
-      const page: GhCommit[] = await r.json();
+      const body = await r.json();
+      if (!Array.isArray(body))
+        return { data: all, status: r.status, error: "Unexpected response from GitHub API" };
+      const page = body as GhCommit[];
       all.push(...page);
       pages++;
       const link: string = r.headers.get("link") ?? "";

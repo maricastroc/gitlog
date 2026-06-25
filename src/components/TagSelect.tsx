@@ -1,7 +1,7 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faCheck, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
@@ -36,7 +36,6 @@ export default function TagSelect({ value, onValueChange, options, placeholder }
     const active = opt.value === value;
     return (
       <button
-        key={opt.value}
         onClick={() => select(opt.value)}
         className={`flex items-start gap-2 w-full px-3 py-1.5 rounded-md text-[12px] font-mono text-left cursor-pointer outline-none hover:bg-panel hover:text-text transition-colors ${
           active ? "text-add" : "text-text-dim"
@@ -85,14 +84,20 @@ export default function TagSelect({ value, onValueChange, options, placeholder }
             </div>
           </div>
           <div className="p-1 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-line scrollbar-track-transparent">
-            {ungrouped.map((o) => renderItem(o, false))}
+            {ungrouped.map((o) => (
+              <Fragment key={o.value}>{renderItem(o, false)}</Fragment>
+            ))}
             {groups.map((group, i) => (
               <div key={group}>
                 {(ungrouped.length > 0 || i > 0) && <div className="my-1 h-px bg-line mx-1" />}
                 <p className="px-3 pt-2 pb-1 text-[10px] font-mono uppercase tracking-widest text-text-dim/50 select-none">
                   {group}
                 </p>
-                {filtered.filter((o) => o.group === group).map((o) => renderItem(o, true))}
+                {filtered
+                  .filter((o) => o.group === group)
+                  .map((o) => (
+                    <Fragment key={o.value}>{renderItem(o, true)}</Fragment>
+                  ))}
               </div>
             ))}
             {filtered.length === 0 && (

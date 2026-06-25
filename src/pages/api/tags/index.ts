@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 import type { Ref } from "@/types";
 
 const GITHUB_NAME_RE = /^[a-zA-Z0-9_.-]{1,100}$/;
@@ -15,14 +15,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (type === "local") {
     if (!path) return res.status(400).json({ error: "path is required" });
-    if (path.includes('"') || path.includes("\0")) {
-      return res.status(400).json({ error: "Invalid path" });
-    }
     try {
-      const rawTags = execSync(`git -C "${path}" tag --sort=-creatordate`, { encoding: "utf8" });
-      const rawBranches = execSync(`git -C "${path}" branch --format="%(refname:short)"`, {
+      const tagResult = spawnSync("git", ["-C", path, "tag", "--sort=-creatordate"], {
         encoding: "utf8",
       });
+      if (tagResult.error || tagResult.status !== 0)
+        throw new Error(tagResult.stderr?.trim() || "git tag failed");
+      const branchResult = spawnSync("git", ["-C", path, "branch", "--format=%(refname:short)"], {
+        encoding: "utf8",
+      });
+      if (branchResult.error || branchResult.status !== 0)
+        throw new Error(branchResult.stderr?.trim() || "git branch failed");
+      const rawTags = tagResult.stdout;
+      const rawBranches = branchResult.stdout;
       const tags: Ref[] = rawTags
         .trim()
         .split("\n")

@@ -12,6 +12,7 @@ import { catStyle } from "@/lib/categoryStyles";
 import { groupBy, lastCommitAgo, buildTimeline } from "@/lib/commitStats";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faCheck, faScroll, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import RangeLabel from "@/components/RangeLabel";
 
 type Props = {
   commits: Commit[];
@@ -82,14 +83,7 @@ export default function Overview({
     { label: "Uncategorized", cat: "other", count: byCat["other"] ?? 0 },
   ];
 
-  const rangeLabel = repoInfo.from ? (
-    <>
-      {repoInfo.from} <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 inline" />{" "}
-      {repoInfo.to ?? "HEAD"}
-    </>
-  ) : (
-    <>HEAD</>
-  );
+  const rangeLabel = <RangeLabel from={repoInfo.from} to={repoInfo.to ?? undefined} />;
 
   function handleShare() {
     navigator.clipboard

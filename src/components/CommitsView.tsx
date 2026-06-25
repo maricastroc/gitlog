@@ -36,6 +36,11 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
     resetFilters,
   } = useCommitFilters(commits);
 
+  function applyFilter(params: Parameters<typeof syncUrl>[0]) {
+    setPage(1);
+    syncUrl(params);
+  }
+
   const catOptions = [
     { value: ALL, label: "All categories" },
     ...categories.map((c) => ({ value: c, label: c })),
@@ -64,44 +69,29 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
           type="text"
           placeholder="Search message, author, sha..."
           value={search}
-          onChange={(e) => {
-            setPage(1);
-            syncUrl({ q: e.target.value });
-          }}
+          onChange={(e) => applyFilter({ q: e.target.value })}
           className="sm:col-span-2 bg-panel border border-line rounded-lg px-3 py-2 text-[12px] font-mono text-text placeholder:text-text-dim focus:outline-none focus:border-add transition-colors"
         />
         <FilterSelect
           value={catFilter}
-          onValueChange={(v) => {
-            setPage(1);
-            syncUrl({ cat: v });
-          }}
+          onValueChange={(v) => applyFilter({ cat: v })}
           placeholder="All categories"
           options={catOptions}
         />
         <FilterSelect
           value={authorFilter}
-          onValueChange={(v) => {
-            setPage(1);
-            syncUrl({ author: v });
-          }}
+          onValueChange={(v) => applyFilter({ author: v })}
           placeholder="All authors"
           options={authorOptions}
         />
         <DatePicker
           value={dateFrom}
-          onChange={(v) => {
-            setPage(1);
-            syncUrl({ dateFrom: v });
-          }}
+          onChange={(v) => applyFilter({ dateFrom: v })}
           placeholder="From (date)"
         />
         <DatePicker
           value={dateTo}
-          onChange={(v) => {
-            setPage(1);
-            syncUrl({ dateTo: v });
-          }}
+          onChange={(v) => applyFilter({ dateTo: v })}
           placeholder="To (date)"
         />
       </div>

@@ -1,16 +1,12 @@
 "use client";
 
 import type { Commit, RepoInfo } from "@/types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowRight,
-  faChevronDown,
-  faChevronRight,
-  faCheck,
-} from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronRight, faCheck } from "@fortawesome/free-solid-svg-icons";
 import Button from "@/components/Button";
+import RangeLabel from "@/components/RangeLabel";
 import PageHeader from "@/components/PageHeader";
 import AuthorFilter from "@/components/AuthorFilter";
 import { catStyle, CAT_ORDER } from "@/lib/categoryStyles";
@@ -46,6 +42,10 @@ export default function ChangelogView({ commits, repoInfo, showAuthor = false, o
 
   const allAuthors = useMemo(() => [...new Set(commits.map((c) => c.author))].sort(), [commits]);
   const [selectedAuthors, setSelectedAuthors] = useState<Set<string>>(() => new Set(allAuthors));
+
+  useEffect(() => {
+    setSelectedAuthors(new Set(allAuthors));
+  }, [allAuthors]);
 
   function toggleAuthor(author: string) {
     setSelectedAuthors((prev) => {
@@ -105,14 +105,7 @@ export default function ChangelogView({ commits, repoInfo, showAuthor = false, o
       return downloadFile(generateJSON(exportInput), "changelog.json", "application/json");
   }
 
-  const intervalLabel = repoInfo.from ? (
-    <>
-      {repoInfo.from} <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 inline" />{" "}
-      {repoInfo.to ?? "HEAD"}
-    </>
-  ) : (
-    <>HEAD</>
-  );
+  const intervalLabel = <RangeLabel from={repoInfo.from} to={repoInfo.to ?? undefined} />;
 
   return (
     <div className="w-full">

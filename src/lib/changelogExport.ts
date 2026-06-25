@@ -24,7 +24,11 @@ export function groupByPeriod(
     map.get(key)!.push(c);
   }
   return [...map.entries()]
-    .sort((a, b) => new Date(b[1][0].date).getTime() - new Date(a[1][0].date).getTime())
+    .sort((a, b) => {
+      const latestA = Math.max(...a[1].map((c) => new Date(c.date).getTime()));
+      const latestB = Math.max(...b[1].map((c) => new Date(c.date).getTime()));
+      return latestB - latestA;
+    })
     .map(([period, commits]) => ({ period, commits }));
 }
 
