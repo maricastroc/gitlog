@@ -98,18 +98,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (date) params.set("until", date);
   }
 
-  const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?${params}`, { headers });
-  if (!ghRes.ok) {
-    const err = await ghRes.json() as { message?: string };
-    return res.status(ghRes.status).json({ error: err.message ?? "GitHub API error" });
-  }
-
   type GhCommit = {
     sha: string;
     commit: { message: string; author: { name: string; date: string } };
   };
 
-  const data: GhCommit[] = await ghRes.json();
+  async function fetchAllPages(url: string): Promise<{ data: GhCommit[]; status: number; error?: string }> {
+    const all: GhCommit[] = [];
+    let next: string | null = url;
+    while (next) {
+      const r = await fetch(next, { headers });
+      if (!r.ok) {
+        const err = await r.json() as { message?: string };
+        return { data: [], status: r.status, error: err.message ?? "GitHub API error" };
+      }
+      const page: GhCommit[] = await r.json();
+      all.push(...page);
+      const link: string = r.headers.get("link") ?? "";
+      const match: RegExpMatchArray | null = link.match(/<([^>]+)>;\s*rel="next"/);
+      next = match ? match[1] : null;
+    }
+    return { data: all, status: 200 };
+  }
+
+  const { data, status, error } = await fetchAllPages(
+    `https://api.github.com/repos/${owner}/${repo}/commits?${params}`
+  );
+  if (error) return res.status(status).json({ error });
+
   const commits = data.map((c) => ({
     sha: c.sha.slice(0, 7),
     message: c.commit.message.split("\n")[0],

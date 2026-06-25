@@ -4,7 +4,7 @@ import type { Commit, RepoInfo } from "@/types";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight, faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 import AuthorFilter from "@/components/AuthorFilter";
@@ -54,6 +54,16 @@ export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
     return acc;
   }, {});
   const sorted = CAT_ORDER.filter((k) => groups[k]);
+
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  function toggleCollapse(cat: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  }
 
   const exportInput = { groups, sorted, grouping, range: { from: repoInfo.from, to: repoInfo.to } };
 
@@ -113,29 +123,47 @@ export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
 
       <div className="panel">
         <div className="flex flex-col gap-6">
-          {sorted.map((cat) => (
-            <div key={cat}>
-              <p className="text-text-dim text-[10px] uppercase tracking-widest mb-2.5">{catStyle(cat).label}</p>
-              <div className="flex flex-col gap-4">
-                {groupByPeriod(groups[cat], grouping).map(({ period, commits: cs }) => (
-                  <div key={period || "all"}>
-                    {period && (
-                      <p className="text-text-dim text-[10px] font-mono mb-2 pl-3.5 border-l border-line">{period}</p>
-                    )}
-                    <div className="flex flex-col gap-1.5">
-                      {cs.map((c) => (
-                        <div key={c.sha} className={`flex items-baseline gap-2.5 font-mono text-[13px] ${catStyle(cat).text}`}>
-                          <span className="shrink-0 w-2.5">{catStyle(cat).prefix}</span>
-                          <span className="flex-1">{c.message}</span>
-                          <span className="text-text-dim text-[11px] shrink-0">{c.sha}</span>
+          {sorted.map((cat) => {
+            const isCollapsed = collapsed.has(cat);
+            const count = groups[cat].length;
+            return (
+              <div key={cat}>
+                <button
+                  onClick={() => toggleCollapse(cat)}
+                  className="flex items-center gap-2 w-full text-left mb-2.5 group"
+                >
+                  <FontAwesomeIcon
+                    icon={isCollapsed ? faChevronRight : faChevronDown}
+                    className="w-2 h-2 text-text-dim group-hover:text-text transition-colors shrink-0"
+                  />
+                  <p className="text-text-dim text-[10px] uppercase tracking-widest group-hover:text-text transition-colors">
+                    {catStyle(cat).label}
+                  </p>
+                  <span className="text-text-dim text-[10px] font-mono">({count})</span>
+                </button>
+                {!isCollapsed && (
+                  <div className="flex flex-col gap-4">
+                    {groupByPeriod(groups[cat], grouping).map(({ period, commits: cs }) => (
+                      <div key={period || "all"}>
+                        {period && (
+                          <p className="text-text-dim text-[10px] font-mono mb-2 pl-3.5 border-l border-line">{period}</p>
+                        )}
+                        <div className="flex flex-col gap-1.5">
+                          {cs.map((c) => (
+                            <div key={c.sha} className={`flex items-baseline gap-2.5 font-mono text-[13px] ${catStyle(cat).text}`}>
+                              <span className="shrink-0 w-2.5">{catStyle(cat).prefix}</span>
+                              <span className="flex-1">{c.message}</span>
+                              <span className="text-text-dim text-[11px] shrink-0">{c.sha}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

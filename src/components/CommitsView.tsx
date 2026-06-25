@@ -64,7 +64,7 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
   function syncUrl(updates: Record<string, string>) {
     const next: Record<string, string> = {};
     for (const [k, v] of Object.entries({ ...router.query, ...updates })) {
-      if (typeof v === "string") next[k] = v;
+      if (typeof v === "string" && v !== "") next[k] = v;
     }
     router.replace({ query: next }, undefined, { shallow: true });
   }
