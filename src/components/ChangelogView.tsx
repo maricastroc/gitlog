@@ -4,7 +4,7 @@ import type { Commit, RepoInfo } from "@/types";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRight, faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight, faChevronDown, faChevronRight, faCheck } from "@fortawesome/free-solid-svg-icons";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 import AuthorFilter from "@/components/AuthorFilter";
@@ -109,7 +109,7 @@ export default function ChangelogView({ commits, repoInfo, showAuthor = false, o
         <PageHeader title="Generated changelog" description={intervalLabel} />
         <div className="flex flex-wrap gap-2 sm:mt-1 shrink-0">
           <Button variant="ghost" onClick={handleCopy}>
-            {copied ? "✓ copied!" : "copy markdown"}
+            {copied ? <><FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5" /> copied!</> : "copy markdown"}
           </Button>
           <Button variant="ghost" onClick={() => handleExport("md")}>
             export .md

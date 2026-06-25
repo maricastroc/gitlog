@@ -2,6 +2,7 @@
 
 import type { Settings } from "@/types";
 import { useState } from "react";
+import { Tooltip } from "react-tooltip";
 import * as Select from "@radix-ui/react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
@@ -12,36 +13,35 @@ import { catStyle } from "@/lib/categoryStyles";
 type Props = { settings: Settings; setSettings: (s: Settings) => void };
 
 export default function SettingsView({ settings, setSettings }: Props) {
+  const [draft, setDraft] = useState<Settings>(settings);
   const [newKeyword, setNewKeyword] = useState("");
-
   const [selectedCat, setSelectedCat] = useState("feat");
-
   const [saved, setSaved] = useState(false);
+
+  const isDirty = JSON.stringify(draft) !== JSON.stringify(settings);
 
   function addKeyword() {
     const kw = newKeyword.trim().toLowerCase();
     if (!kw) return;
-    const current = settings.keywords[selectedCat] ?? [];
+    const current = draft.keywords[selectedCat] ?? [];
     if (current.includes(kw)) return;
-    setSettings({
-      ...settings,
-      keywords: { ...settings.keywords, [selectedCat]: [...current, kw] },
-    });
+    setDraft({ ...draft, keywords: { ...draft.keywords, [selectedCat]: [...current, kw] } });
     setNewKeyword("");
   }
 
   function removeKeyword(cat: string, kw: string) {
-    setSettings({
-      ...settings,
-      keywords: { ...settings.keywords, [cat]: settings.keywords[cat].filter((k) => k !== kw) },
+    setDraft({
+      ...draft,
+      keywords: { ...draft.keywords, [cat]: draft.keywords[cat].filter((k) => k !== kw) },
     });
   }
 
   function toggle(key: keyof Omit<Settings, "keywords">) {
-    setSettings({ ...settings, [key]: !settings[key] });
+    setDraft({ ...draft, [key]: !draft[key] });
   }
 
   function handleSave() {
+    setSettings(draft);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -83,7 +83,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
           </p>
 
           <div className="flex flex-col divide-y divide-line mb-4">
-            {Object.entries(settings.keywords).map(([cat, kws]) => (
+            {Object.entries(draft.keywords).map(([cat, kws]) => (
               <div key={cat} className="flex flex-wrap items-center gap-1.5 py-3">
                 <span
                   className={`text-[10px] font-semibold px-2 py-0.5 rounded-[var(--radius-sm)] uppercase tracking-wider border border-line shrink-0 ${catStyle(cat).text} ${catStyle(cat).bg}`}
@@ -123,7 +123,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
                   className="z-50 bg-panel-2 border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden"
                 >
                   <Select.Viewport className="p-1">
-                    {Object.keys(settings.keywords).map((c) => (
+                    {Object.keys(draft.keywords).map((c) => (
                       <Select.Item
                         key={c}
                         value={c}
@@ -169,19 +169,41 @@ export default function SettingsView({ settings, setSettings }: Props) {
                 </div>
                 <button
                   onClick={() => toggle(key)}
-                  className={`relative w-10 h-5 rounded-full shrink-0 mt-0.5 overflow-hidden border transition-colors cursor-pointer ${settings[key] ? "bg-add border-add" : "bg-panel border-text-dim"}`}
+                  className={`relative w-10 h-5 rounded-full shrink-0 mt-0.5 overflow-hidden border transition-colors cursor-pointer ${draft[key] ? "bg-add border-add" : "bg-panel border-text-dim"}`}
                 >
                   <span
-                    className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all ${settings[key] ? "left-[22px]" : "left-0.5"}`}
+                    className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all ${draft[key] ? "left-[22px]" : "left-0.5"}`}
                   />
                 </button>
               </div>
             ))}
           </div>
 
-          <Button onClick={handleSave} className="mt-6 w-full py-2.5">
-            {saved ? "✓ settings saved" : "save settings"}
-          </Button>
+          <span
+            data-tooltip-id="save-settings"
+            data-tooltip-content="Change a setting before saving"
+            className="mt-6"
+            style={{ display: !isDirty && !saved ? "block" : "contents" }}
+          >
+            <Button onClick={handleSave} disabled={!isDirty && !saved} className="w-full py-2.5">
+              {saved ? <><FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5" /> settings saved</> : isDirty ? "save settings" : "no changes"}
+            </Button>
+          </span>
+          {!isDirty && !saved && (
+            <Tooltip
+              id="save-settings"
+              place="top"
+              style={{
+                fontSize: 11,
+                fontFamily: "var(--font-mono, monospace)",
+                padding: "5px 10px",
+                backgroundColor: "#2e3338",
+                color: "#d0d5db",
+                border: "1px solid #3d4349",
+                borderRadius: 6,
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

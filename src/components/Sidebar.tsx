@@ -72,9 +72,9 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
             fontSize: 11,
             fontFamily: "var(--font-mono, monospace)",
             padding: "5px 10px",
-            backgroundColor: "#1a1d1f",
-            color: "#8a9099",
-            border: "1px solid #2a2e33",
+            backgroundColor: "#2e3338",
+            color: "#d0d5db",
+            border: "1px solid #3d4349",
             borderRadius: 6,
             boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
           }}
