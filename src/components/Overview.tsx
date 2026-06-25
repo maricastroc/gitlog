@@ -1,10 +1,13 @@
 "use client";
 
-import type { Commit, RepoInfo } from "@/types";
+import type { Commit, RepoInfo, Ref } from "@/types";
 import { useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
 import PageHeader from "@/components/PageHeader";
+import ReleaseDiff from "@/components/ReleaseDiff";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLink, faCheck } from "@fortawesome/free-solid-svg-icons";
 
 const CAT: Record<string, { text: string; bg: string; dot: string; bar: string; accent: string }> = {
   feat:     { text: "text-add",      bg: "bg-add-dim",   dot: "bg-add",      bar: "bg-add",      accent: "border-add"      },
@@ -17,7 +20,7 @@ const CAT: Record<string, { text: string; bg: string; dot: string; bar: string; 
   other:    { text: "text-text-dim", bg: "bg-panel-2",   dot: "bg-text-dim", bar: "bg-text-dim", accent: "border-line"     },
 };
 
-type Props = { commits: Commit[]; repoInfo: RepoInfo; onViewAllCommits: () => void; onViewChangelog: () => void };
+type Props = { commits: Commit[]; repoInfo: RepoInfo; refs?: Ref[]; onViewAllCommits: () => void; onViewChangelog: () => void };
 
 function lastCommitAgo(commits: Commit[], category: string): string | null {
   const filtered = commits.filter((c) => c.category === category);
@@ -39,7 +42,7 @@ function buildTimeline(commits: Commit[]): { label: string; count: number }[] {
   return sorted.slice(-20).map(([label, count]) => ({ label, count }));
 }
 
-export default function Overview({ commits, repoInfo, onViewAllCommits, onViewChangelog }: Props) {
+export default function Overview({ commits, repoInfo, refs = [], onViewAllCommits, onViewChangelog }: Props) {
   const authors = [...new Set(commits.map((c) => c.author))];
   const dates = commits.map((c) => new Date(c.date)).sort((a, b) => a.getTime() - b.getTime());
   const since = dates[0] ? format(dates[0], "d MMM yyyy", { locale: enUS }) : "—";
@@ -47,6 +50,14 @@ export default function Overview({ commits, repoInfo, onViewAllCommits, onViewCh
 
   const [hoveredBar, setHoveredBar] = useState<{ label: string; count: number; index: number } | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  function handleShare() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   const byCat    = commits.reduce<Record<string, number>>((a, c) => { a[c.category] = (a[c.category] ?? 0) + 1; return a; }, {});
   const byAuthor = commits.reduce<Record<string, number>>((a, c) => { a[c.author]   = (a[c.author]   ?? 0) + 1; return a; }, {});
@@ -80,8 +91,20 @@ export default function Overview({ commits, repoInfo, onViewAllCommits, onViewCh
           title="Period overview"
           description={`${since} — ${until}`}
         />
-        <div className="flex flex-col items-end gap-1 sm:mt-1 shrink-0">
-          <span className="text-text-dim text-[11px] font-mono">{rangeLabel}</span>
+        <div className="flex flex-col items-end gap-2 sm:mt-1 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-text-dim text-[11px] font-mono">{rangeLabel}</span>
+            {repoInfo.type === "remote" && (
+              <button
+                onClick={handleShare}
+                title="Copy shareable link"
+                className="text-[11px] font-mono text-text-dim border border-line px-2 py-0.5 rounded hover:text-text hover:border-text-dim transition-colors cursor-pointer"
+              >
+                <FontAwesomeIcon icon={copied ? faCheck : faLink} className="w-2.5 h-2.5 mr-1" />
+                {copied ? "copied" : "share"}
+              </button>
+            )}
+          </div>
           <button
             onClick={onViewChangelog}
             className="flex flex-col items-center px-5 py-2.5 rounded-lg bg-add-dim border border-add text-add font-mono hover:brightness-110 transition-all cursor-pointer"
@@ -219,6 +242,12 @@ export default function Overview({ commits, repoInfo, onViewAllCommits, onViewCh
           </div>
         </div>
       </div>
+
+      {repoInfo.type === "remote" && (
+        <div className="mt-4">
+          <ReleaseDiff commits={commits} repoInfo={repoInfo} refs={refs} />
+        </div>
+      )}
     </div>
   );
 }

@@ -22,7 +22,7 @@ function extractError(err: unknown): string {
   return (err as AxiosError<{ error: string }>)?.response?.data?.error ?? "Erro inesperado";
 }
 
-export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[]) => void, keywords: Settings["keywords"] = {}) {
+export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[], refs: Ref[]) => void, keywords: Settings["keywords"] = {}) {
   const [state, setState] = useState<State>(INITIAL);
 
   function set(patch: Partial<State>) {
@@ -57,7 +57,7 @@ export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[]) => v
           ? { type: "local", label: params.path.split("/").filter(Boolean).pop() ?? params.path, path: params.path, from: state.from, to: state.to }
           : { type: "remote", label: `${params.owner}/${params.repo}`, owner: params.owner, repo: params.repo, token: params.token, from: state.from, to: "HEAD" };
 
-      onLoaded(info, commits);
+      onLoaded(info, commits, state.refs);
       set({ isLoading: false });
     } catch (err) {
       set({ error: extractError(err), isLoading: false });

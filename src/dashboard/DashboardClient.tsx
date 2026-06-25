@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import { useRecentRepos } from "@/hooks/useRecentRepos";
+import { api } from "@/lib/axios";
 import Sidebar from "@/components/Sidebar";
 import SelectRepo from "@/components/SelectRepo";
 import Overview from "@/components/Overview";
@@ -9,7 +11,7 @@ import CommitsView from "@/components/CommitsView";
 import ChangelogView from "@/components/ChangelogView";
 import SettingsView from "@/components/SettingsView";
 import AuthorView from "@/components/AuthorView";
-import type { Commit, RepoInfo, View, Settings } from "@/types";
+import type { Commit, RepoInfo, View, Settings, Ref } from "@/types";
 
 const DEFAULT_SETTINGS: Settings = {
   keywords: {
@@ -72,16 +74,45 @@ function EmptyState({ onSelect }: { onSelect: () => void }) {
 }
 
 export default function DashboardClient() {
+  const router = useRouter();
+  const autoLoaded = useRef(false);
+
   const [view, setView] = useState<View>("select");
   const [repoInfo, setRepoInfo] = useState<RepoInfo | null>(null);
   const [commits, setCommits] = useState<Commit[]>([]);
+  const [refs, setRefs] = useState<Ref[]>([]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [welcomed, setWelcomed] = useState(false);
   const { recents, add: addRecent } = useRecentRepos();
 
-  function handleRepoLoaded(info: RepoInfo, data: Commit[]) {
+  useEffect(() => {
+    if (autoLoaded.current || !router.isReady) return;
+    const { repo, from, to } = router.query as Record<string, string>;
+    if (!repo) return;
+    const [owner, repoName] = repo.split("/");
+    if (!owner || !repoName) return;
+    autoLoaded.current = true;
+    setWelcomed(true);
+
+    const params: Record<string, string> = { type: "remote", owner, repo: repoName };
+    if (from) params.since = from;
+
+    api.get<{ data: Commit[] }>("/commits", { params }).then((res) => {
+      const data = res.data.data ?? [];
+      handleRepoLoaded(
+        { type: "remote", label: `${owner}/${repoName}`, owner, repo: repoName, from: from ?? "", to: to ?? "HEAD" },
+        data,
+        false,
+      );
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady]);
+
+  function handleRepoLoaded(info: RepoInfo, data: Commit[], refsOrUrl: Ref[] | boolean = true, updateUrl = true) {
     setRepoInfo(info);
     setCommits(data);
+    if (Array.isArray(refsOrUrl)) setRefs(refsOrUrl);
+    const shouldUpdateUrl = Array.isArray(refsOrUrl) ? updateUrl : refsOrUrl;
     setView("overview");
     addRecent({
       label: info.label,
@@ -89,6 +120,13 @@ export default function DashboardClient() {
       url:  info.type === "remote" ? `https://github.com/${info.owner}/${info.repo}` : undefined,
       path: info.path,
     });
+    if (shouldUpdateUrl && info.type === "remote") {
+      router.replace(
+        { query: { repo: `${info.owner}/${info.repo}`, from: info.from ?? "", to: info.to ?? "HEAD" } },
+        undefined,
+        { shallow: true },
+      );
+    }
   }
 
   function handleCategoryChange(sha: string, category: string) {
@@ -114,7 +152,7 @@ export default function DashboardClient() {
           <SelectRepo onLoaded={handleRepoLoaded} recents={recents} keywords={settings.keywords} />
         </div>
 
-        {view === "overview"  && repoInfo && <Overview commits={commits} repoInfo={repoInfo} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}
+        {view === "overview"  && repoInfo && <Overview commits={commits} repoInfo={repoInfo} refs={refs} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}
         {view === "commits"   && repoInfo && <CommitsView commits={commits} onCategoryChange={handleCategoryChange} />}
         {view === "changelog" && repoInfo && <ChangelogView commits={commits} repoInfo={repoInfo} />}
         {view === "authors"   && repoInfo && <AuthorView commits={commits} />}
