@@ -1,7 +1,7 @@
 import { api } from "@/lib/axios";
 import type { Commit, Settings } from "@/types";
 
-type RemoteSource = { type: "remote"; owner: string; repo: string };
+type RemoteSource = { type: "remote"; owner: string; repo: string; token?: string };
 type LocalSource = { type: "local"; path: string };
 
 type FetchCommitsOptions = {
@@ -37,6 +37,7 @@ export async function fetchCommits(
   if (source.type === "remote") {
     params.owner = source.owner;
     params.repo = source.repo;
+    if (source.token) params.token = source.token;
   } else {
     params.path = source.path;
   }

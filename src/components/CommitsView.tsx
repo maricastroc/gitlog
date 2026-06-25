@@ -72,24 +72,36 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
         />
         <FilterSelect
           value={catFilter}
-          onValueChange={(v) => { setPage(1); syncUrl({ cat: v }); }}
+          onValueChange={(v) => {
+            setPage(1);
+            syncUrl({ cat: v });
+          }}
           placeholder="All categories"
           options={catOptions}
         />
         <FilterSelect
           value={authorFilter}
-          onValueChange={(v) => { setPage(1); syncUrl({ author: v }); }}
+          onValueChange={(v) => {
+            setPage(1);
+            syncUrl({ author: v });
+          }}
           placeholder="All authors"
           options={authorOptions}
         />
         <DatePicker
           value={dateFrom}
-          onChange={(v) => { setPage(1); syncUrl({ dateFrom: v }); }}
+          onChange={(v) => {
+            setPage(1);
+            syncUrl({ dateFrom: v });
+          }}
           placeholder="From (date)"
         />
         <DatePicker
           value={dateTo}
-          onChange={(v) => { setPage(1); syncUrl({ dateTo: v }); }}
+          onChange={(v) => {
+            setPage(1);
+            syncUrl({ dateTo: v });
+          }}
           placeholder="To (date)"
         />
       </div>

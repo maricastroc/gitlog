@@ -78,7 +78,10 @@ export function RepoInputForm({
               />
             </button>
             {tokenOpen && (
-              <FormField label="" hint="Required for private repositories or to avoid rate limiting.">
+              <FormField
+                label=""
+                hint="Required for private repositories or to avoid rate limiting."
+              >
                 <input
                   className={INPUT_CLS}
                   type="password"

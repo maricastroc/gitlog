@@ -72,5 +72,5 @@ describe("edge cases", () => {
   it("is case-insensitive for conventional prefix", () =>
     expect(categorize("FEAT: something")).toBe("feat"));
   it("does not match partial prefix — 'feature:' is not conventional", () =>
-    expect(categorize("feature: dark mode")).toBe("feat")); // falls to keyword match
+    expect(categorize("feature: dark mode")).toBe("feat"));
 });

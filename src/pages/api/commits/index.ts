@@ -26,10 +26,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const token = req.query.token as string | undefined;
   const since = req.query.since as string | undefined;
   const until = req.query.until as string | undefined;
-  const userKeywords        = parseKeywords(req.query.keywords as string | undefined);
-  const ignoreMerge         = req.query.ignoreMerge === "true";
+  const userKeywords = parseKeywords(req.query.keywords as string | undefined);
+  const ignoreMerge = req.query.ignoreMerge === "true";
   const conventionalCommits = req.query.conventionalCommits !== "false";
-  const ignoreBots          = req.query.ignoreBots === "true";
+  const ignoreBots = req.query.ignoreBots === "true";
 
   const BOT_RE = /\[bot\]|dependabot|renovate|github-actions|snyk|codecov|semantic-release/i;
 
@@ -52,7 +52,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .filter(Boolean)
         .map((line) => {
           const [sha, message, author, date] = line.split("|");
-          return { sha: sha.slice(0, 7), message, author, date, category: categorize(message, userKeywords, conventionalCommits) };
+          return {
+            sha: sha.slice(0, 7),
+            message,
+            author,
+            date,
+            category: categorize(message, userKeywords, conventionalCommits),
+          };
         })
         .filter((c) => !ignoreBots || !BOT_RE.test(c.author));
       return res.json({ data: commits });

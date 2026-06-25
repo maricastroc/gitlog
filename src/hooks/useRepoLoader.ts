@@ -52,7 +52,7 @@ export function useRepoLoader(
     try {
       const source =
         params.type === "remote"
-          ? { type: "remote" as const, owner: params.owner, repo: params.repo }
+          ? { type: "remote" as const, owner: params.owner, repo: params.repo, token: params.token }
           : { type: "local" as const, path: params.path };
 
       const commits = await fetchCommits(source, {

@@ -45,12 +45,7 @@ export function RangeSelector({
           />
         </FormField>
         <FormField label="To">
-          <TagSelect
-            value={to}
-            onValueChange={onToChange}
-            options={toOptions}
-            placeholder="HEAD"
-          />
+          <TagSelect value={to} onValueChange={onToChange} options={toOptions} placeholder="HEAD" />
         </FormField>
       </div>
       <div className="flex gap-3">

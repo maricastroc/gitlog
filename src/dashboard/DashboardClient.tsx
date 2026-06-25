@@ -17,7 +17,6 @@ import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { EmptyState } from "@/components/EmptyState";
 import type { Commit, RepoInfo, View, Ref } from "@/types";
 
-
 export default function DashboardClient() {
   const router = useRouter();
 
@@ -42,10 +41,13 @@ export default function DashboardClient() {
   const [categoryOverrides, setCategoryOverrides] = useState<Map<string, string>>(new Map());
 
   const categorizedCommits = useMemo(
-    () => commits.map((c) => ({
-      ...c,
-      category: categoryOverrides.get(c.sha) ?? categorize(c.message, settings.keywords, settings.conventionalCommits),
-    })),
+    () =>
+      commits.map((c) => ({
+        ...c,
+        category:
+          categoryOverrides.get(c.sha) ??
+          categorize(c.message, settings.keywords, settings.conventionalCommits),
+      })),
     [commits, categoryOverrides, settings.keywords, settings.conventionalCommits],
   );
 
@@ -74,7 +76,10 @@ export default function DashboardClient() {
         ignoreBots: settings.ignoreBots,
         keywords: settings.keywords,
       })
-        .then((data) => { setCommits(data); setCategoryOverrides(new Map()); })
+        .then((data) => {
+          setCommits(data);
+          setCategoryOverrides(new Map());
+        })
         .catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,7 +93,16 @@ export default function DashboardClient() {
     if (!owner || !repoName) return;
     autoLoaded.current = true;
 
-    fetchCommits({ type: "remote", owner, repo: repoName }, { from, ignoreMerge: settings.ignoreMerge, conventionalCommits: settings.conventionalCommits, ignoreBots: settings.ignoreBots, keywords: settings.keywords })
+    fetchCommits(
+      { type: "remote", owner, repo: repoName },
+      {
+        from,
+        ignoreMerge: settings.ignoreMerge,
+        conventionalCommits: settings.conventionalCommits,
+        ignoreBots: settings.ignoreBots,
+        keywords: settings.keywords,
+      },
+    )
       .then((data) => {
         setWelcomed(true);
         handleRepoLoaded(
@@ -165,7 +179,16 @@ export default function DashboardClient() {
 
     setWelcomed(true);
 
-    fetchCommits({ type: "remote", owner, repo }, { from: recent.from, ignoreMerge: settings.ignoreMerge, conventionalCommits: settings.conventionalCommits, ignoreBots: settings.ignoreBots, keywords: settings.keywords })
+    fetchCommits(
+      { type: "remote", owner, repo },
+      {
+        from: recent.from,
+        ignoreMerge: settings.ignoreMerge,
+        conventionalCommits: settings.conventionalCommits,
+        ignoreBots: settings.ignoreBots,
+        keywords: settings.keywords,
+      },
+    )
       .then((data) => {
         handleRepoLoaded(
           {

@@ -86,7 +86,12 @@ export default function SelectRepo({
         setValidationError("Invalid URL. Use https://github.com/owner/repo");
         return;
       }
-      loader.fetchTags({ type: "remote", owner: parsed.owner, repo: parsed.repo, ...(token && { token }) });
+      loader.fetchTags({
+        type: "remote",
+        owner: parsed.owner,
+        repo: parsed.repo,
+        ...(token && { token }),
+      });
     }
   }
 
@@ -95,7 +100,12 @@ export default function SelectRepo({
     if (tab === "local") {
       loader.fetchCommits({ type: "local", path: localPath });
     } else {
-      loader.fetchCommits({ type: "remote", owner: parsed!.owner, repo: parsed!.repo, ...(token && { token }) });
+      loader.fetchCommits({
+        type: "remote",
+        owner: parsed!.owner,
+        repo: parsed!.repo,
+        ...(token && { token }),
+      });
     }
   }
 
@@ -171,8 +181,14 @@ export default function SelectRepo({
             <RecentReposList
               recents={recents}
               onQuickLoad={onQuickLoad}
-              onSelectRemote={(url) => { switchTab("remote"); setRepoUrl(url); }}
-              onSelectLocal={(path) => { switchTab("local"); setLocalPath(path); }}
+              onSelectRemote={(url) => {
+                switchTab("remote");
+                setRepoUrl(url);
+              }}
+              onSelectLocal={(path) => {
+                switchTab("local");
+                setLocalPath(path);
+              }}
             />
           </>
         )}

@@ -29,10 +29,30 @@ export function RepoCard({ preview, refs }: { preview: RepoPreview; refs: Ref[] 
     : null;
 
   const stats = [
-    { icon: faStar, color: "text-fix", value: formatCount(preview.stargazers_count), label: "stars" },
-    { icon: faCodeFork, color: "text-chore", value: formatCount(preview.forks_count), label: "forks" },
-    { icon: faEye, color: "text-docs", value: formatCount(preview.subscribers_count), label: "watchers" },
-    { icon: faExclamationCircle, color: "text-style", value: formatCount(preview.open_issues_count), label: "issues" },
+    {
+      icon: faStar,
+      color: "text-fix",
+      value: formatCount(preview.stargazers_count),
+      label: "stars",
+    },
+    {
+      icon: faCodeFork,
+      color: "text-chore",
+      value: formatCount(preview.forks_count),
+      label: "forks",
+    },
+    {
+      icon: faEye,
+      color: "text-docs",
+      value: formatCount(preview.subscribers_count),
+      label: "watchers",
+    },
+    {
+      icon: faExclamationCircle,
+      color: "text-style",
+      value: formatCount(preview.open_issues_count),
+      label: "issues",
+    },
   ];
 
   const meta = [
@@ -83,7 +103,10 @@ export function RepoCard({ preview, refs }: { preview: RepoPreview; refs: Ref[] 
       {meta.length > 0 && (
         <div className="border-t border-line pt-3 flex flex-col gap-1.5">
           {meta.map((m) => (
-            <div key={m.label} className="flex items-center gap-2 text-[11px] font-mono text-text-dim">
+            <div
+              key={m.label}
+              className="flex items-center gap-2 text-[11px] font-mono text-text-dim"
+            >
               <FontAwesomeIcon icon={m.icon} className="w-2.5 h-2.5 shrink-0 text-text-dim/40" />
               {m.label}
             </div>
