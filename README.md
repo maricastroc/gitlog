@@ -9,6 +9,12 @@ A full-stack changelog generator that turns Git commit history into structured, 
 
 ---
 
+## Why did I build this
+
+I joined a team maintaining a large legacy codebase with hundreds of PRs and no structured changelog. Every time I needed to understand what had changed between two releases — or just get a feel for the project's history — I'd end up digging through raw git logs and GitHub's PR list, manually piecing things together.
+
+Gitlog was my answer to that. Paste a GitHub URL, pick a date or tag range, and get an instant structured overview: commit breakdown by category, contributor activity, and a ready-to-export changelog. What used to take an hour now takes seconds.
+
 ## Highlights
 
 **Commit categorization engine** — commits are classified into categories (feat, fix, chore, docs, refactor, style, test) through a two-pass system: first checking user-defined keyword rules, then falling back to conventional commit prefixes, and finally running a broad regex pass against common vocabulary. The entire logic lives in a single pure function (`api/commits/index.ts: categorize`) with no external dependencies.
