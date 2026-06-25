@@ -13,6 +13,7 @@ import Stepper from "@/components/Stepper";
 import TagSelect from "@/components/TagSelect";
 import RepoPreviewPanel from "@/components/RepoPreviewPanel";
 import PageHeader from "@/components/PageHeader";
+import { buildRefOptions } from "@/lib/refOptions";
 
 type Props = { onLoaded: (info: RepoInfo, commits: Commit[]) => void; onQuickLoad?: (recent: RecentRepo) => void; recents?: RecentRepo[]; keywords?: Settings["keywords"] };
 
@@ -38,16 +39,7 @@ export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywor
 
   const [validationError, setValidationError] = useState("");
 
-  const fromOptions = [
-    { value: "", label: "beginning of history" },
-    ...loader.refs.filter((r) => r.type === "branch").map((r) => ({ value: r.name, label: r.name, group: "Branches" })),
-    ...loader.refs.filter((r) => r.type === "tag").map((r) => ({ value: r.name, label: r.name, group: "Tags" })),
-  ];
-  const toOptions = [
-    { value: "HEAD", label: "HEAD" },
-    ...loader.refs.filter((r) => r.type === "branch").map((r) => ({ value: r.name, label: r.name, group: "Branches" })),
-    ...loader.refs.filter((r) => r.type === "tag").map((r) => ({ value: r.name, label: r.name, group: "Tags" })),
-  ];
+  const { fromOptions, toOptions } = buildRefOptions(loader.refs);
 
   function handleAnalyze() {
     setValidationError("");

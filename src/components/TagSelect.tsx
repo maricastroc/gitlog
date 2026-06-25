@@ -10,11 +10,15 @@ type Props = { value: string; onValueChange: (v: string) => void; options: Optio
 
 export default function TagSelect({ value, onValueChange, options, placeholder }: Props) {
   const [open, setOpen] = useState(false);
+
   const [search, setSearch] = useState("");
 
   const selected = options.find((o) => o.value === value);
+
   const filtered = options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()));
+
   const ungrouped = filtered.filter((o) => !o.group);
+  
   const groups = [...new Set(filtered.filter((o) => o.group).map((o) => o.group!))];
 
   function select(val: string) {

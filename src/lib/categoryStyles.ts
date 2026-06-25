@@ -3,9 +3,9 @@ export type CatStyle = {
   bg:     string;
   dot:    string;
   bar:    string;
-  accent: string; // border-* color
-  prefix: string; // changelog symbol
-  label:  string; // human-readable name
+  accent: string;
+  prefix: string;
+  label:  string; 
 };
 
 export const CAT_STYLES: Record<string, CatStyle> = {

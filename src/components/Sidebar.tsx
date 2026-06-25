@@ -2,12 +2,12 @@
 
 import type { View, RepoInfo } from "@/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCodeBranch, faChartPie, faListUl, faSlidersH, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import { faCodeBranch, faChartPie, faListUl, faSlidersH, faClockRotateLeft, type IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { Tooltip } from "react-tooltip";
 
 type Props = { view: View; setView: (v: View) => void; repoInfo: RepoInfo | null };
 
-const navItems: { id: View; label: string; icon: any; requiresRepo?: boolean }[] = [
+const navItems: { id: View; label: string; icon: IconDefinition; requiresRepo?: boolean }[] = [
   { id: "select",    label: "Select repo",  icon: faCodeBranch },
   { id: "overview",  label: "Overview",     icon: faChartPie,         requiresRepo: true },
   { id: "commits",   label: "Commits",      icon: faClockRotateLeft,  requiresRepo: true },
@@ -18,7 +18,6 @@ const navItems: { id: View; label: string; icon: any; requiresRepo?: boolean }[]
 export default function Sidebar({ view, setView, repoInfo }: Props) {
   return (
     <>
-      {/* Desktop sidebar */}
       <aside style={{ width: 220, minWidth: 220 }} className="hidden md:flex h-full bg-panel border-r border-line flex-col px-4 py-6 shrink-0 overflow-y-auto">
         <div className="mb-6">
           <img src="/logo.svg" alt="gitlog" style={{ width: 118, height: "auto" }} />
@@ -80,7 +79,6 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
         )}
       </aside>
 
-      {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-panel border-t border-line flex justify-around px-2 py-2">
         {navItems.map((item) => {
           const locked = item.requiresRepo && !repoInfo;

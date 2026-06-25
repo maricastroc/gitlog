@@ -12,7 +12,7 @@ export default function Stepper({ step }: { step: number }) {
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-mono font-medium border-2 transition-all ${
               i < step  ? "border-add bg-add text-bg" :
               i === step ? "border-add bg-transparent text-add" :
-                           "border-line bg-transparent text-line"
+                "border-line bg-transparent text-line"
             }`}>
               {i < step ? <FontAwesomeIcon icon={faCheck} className="w-3 h-3" /> : i + 1}
             </div>

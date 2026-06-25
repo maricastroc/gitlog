@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { Commit, Ref, RepoInfo } from "@/types";
 import { api } from "@/lib/axios";
+import { buildRefOptions } from "@/lib/refOptions";
+import { groupBy } from "@/lib/commitStats";
 import TagSelect from "@/components/TagSelect";
 
 import { catStyle } from "@/lib/categoryStyles";
@@ -25,16 +27,7 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
 
   const refs = initialRefs.length > 0 ? initialRefs : extraRefs;
 
-  const fromOptions = [
-    { value: "", label: "beginning of history" },
-    ...refs.filter((r) => r.type === "branch").map((r) => ({ value: r.name, label: r.name, group: "Branches" })),
-    ...refs.filter((r) => r.type === "tag").map((r) => ({ value: r.name, label: r.name, group: "Tags" })),
-  ];
-  const toOptions = [
-    { value: "HEAD", label: "HEAD" },
-    ...refs.filter((r) => r.type === "branch").map((r) => ({ value: r.name, label: r.name, group: "Branches" })),
-    ...refs.filter((r) => r.type === "tag").map((r) => ({ value: r.name, label: r.name, group: "Tags" })),
-  ];
+  const { fromOptions, toOptions } = buildRefOptions(refs);
 
   async function handleOpen() {
     setOpen(true);
@@ -135,8 +128,8 @@ function DiffResult({ commits, baseline, repoInfo, baseFrom, baseTo }: {
 }) {
   const currTotal = commits.length || 1;
   const baseTotal = baseline.length || 1;
-  const currByCat = commits.reduce<Record<string, number>>((a, c) => { a[c.category] = (a[c.category] ?? 0) + 1; return a; }, {});
-  const baseByCat = baseline.reduce<Record<string, number>>((a, c) => { a[c.category] = (a[c.category] ?? 0) + 1; return a; }, {});
+  const currByCat = groupBy(commits,  "category");
+  const baseByCat = groupBy(baseline, "category");
   const allCats = [...new Set([...Object.keys(currByCat), ...Object.keys(baseByCat)])].sort();
 
   const currLabel = repoInfo.from ? `${repoInfo.from} → ${repoInfo.to ?? "HEAD"}` : "current";

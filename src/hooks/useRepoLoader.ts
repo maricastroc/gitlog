@@ -19,7 +19,7 @@ type State = {
 const INITIAL: State = { step: 0, refs: [], error: "", isLoading: false, from: "", to: "HEAD" };
 
 function extractError(err: unknown): string {
-  return (err as AxiosError<{ error: string }>)?.response?.data?.error ?? "Erro inesperado";
+  return (err as AxiosError<{ error: string }>)?.response?.data?.error ?? "Unexpected error";
 }
 
 export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[], refs: Ref[]) => void, keywords: Settings["keywords"] = {}) {

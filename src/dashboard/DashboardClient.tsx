@@ -64,10 +64,9 @@ function CommitTransformAnimation() {
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
     if (phase === "commits") {
-      setVisibleCommits(0);
       let i = 0;
       const tick = () => { i++; setVisibleCommits(i); if (i < ANIMATION_COMMITS.length) t = setTimeout(tick, 260); else t = setTimeout(() => setPhase("grouping"), 700); };
-      t = setTimeout(tick, 300);
+      t = setTimeout(() => { setVisibleCommits(0); t = setTimeout(tick, 260); }, 300);
     } else if (phase === "grouping") {
       t = setTimeout(() => setPhase("result"), 800);
     } else {

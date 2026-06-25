@@ -8,6 +8,7 @@ import PageHeader from "@/components/PageHeader";
 import ReleaseDiff from "@/components/ReleaseDiff";
 import CategoryBadge from "@/components/CategoryBadge";
 import { catStyle } from "@/lib/categoryStyles";
+import { groupBy } from "@/lib/commitStats";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faCheck } from "@fortawesome/free-solid-svg-icons";
 
@@ -50,8 +51,8 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
     });
   }
 
-  const byCat    = commits.reduce<Record<string, number>>((a, c) => { a[c.category] = (a[c.category] ?? 0) + 1; return a; }, {});
-  const byAuthor = commits.reduce<Record<string, number>>((a, c) => { a[c.author]   = (a[c.author]   ?? 0) + 1; return a; }, {});
+  const byCat    = groupBy(commits, "category");
+  const byAuthor = groupBy(commits, "author");
   const sortedCats    = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
   const sortedAuthors = Object.entries(byAuthor).sort((a, b) => b[1] - a[1]);
   const maxCat = sortedCats[0]?.[1] ?? 1;

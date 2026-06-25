@@ -1,7 +1,7 @@
 "use client";
 
 import type { Commit, RepoInfo } from "@/types";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
@@ -39,18 +39,12 @@ function groupByPeriod(commits: Commit[], grouping: Grouping): { period: string;
 export default function ChangelogView({ commits, repoInfo }: Props) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const [grouping, setGrouping] = useState<Grouping>("none");
   const [authorOpen, setAuthorOpen] = useState(false);
 
-  useEffect(() => {
-    if (!router.isReady) return;
-    const g = router.query.grouping as string | undefined;
-    if (g === "month" || g === "week") setGrouping(g);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.isReady]);
+  const rawGrouping = router.query.grouping as string | undefined;
+  const grouping: Grouping = rawGrouping === "month" || rawGrouping === "week" ? rawGrouping : "none";
 
   function handleGrouping(g: Grouping) {
-    setGrouping(g);
     router.replace({ query: { ...router.query, grouping: g } }, undefined, { shallow: true });
   }
 
@@ -60,7 +54,7 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
   function toggleAuthor(author: string) {
     setSelectedAuthors((prev) => {
       const next = new Set(prev);
-      next.has(author) ? next.delete(author) : next.add(author);
+      if (next.has(author)) next.delete(author); else next.add(author);
       return next;
     });
   }

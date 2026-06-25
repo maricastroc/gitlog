@@ -16,7 +16,9 @@ type Props = {
 
 export default function DatePicker({ value, onChange, placeholder = "dd/mm/aaaa" }: Props) {
   const [open, setOpen] = useState(false);
+
   const selected = value ? new Date(value + "T12:00:00") : undefined;
+  
   const label = selected ? format(selected, "d MMM yyyy", { locale: ptBR }) : null;
 
   return (

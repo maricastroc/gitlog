@@ -4,7 +4,9 @@ import type { RepoPreview } from "@/components/RepoPreviewPanel";
 
 export function useRepoPreview(owner: string | null, repo: string | null, token: string) {
   const [preview, setPreview] = useState<RepoPreview | null>(null);
+
   const [loading, setLoading] = useState(false);
+  
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
