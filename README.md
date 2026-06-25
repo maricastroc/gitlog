@@ -19,9 +19,11 @@ A full-stack changelog generator that turns Git commit history into structured, 
 
 **Recent repositories** — previously analyzed repos are persisted to `localStorage` and shown as one-click shortcuts, restoring both the tab (remote/local) and the URL or path.
 
-**Tag-range filtering** — instead of loading all commits, you pick a `from` and `to` tag, and the API resolves each tag ref to its SHA before querying the GitHub commits endpoint — so the range is always precise.
+**Branch & tag comparison** — the range selector lists both branches and tags in grouped dropdowns (with live search), so you can compare `main` vs `develop`, `v1.0` vs `v2.0`, or any combination. The API resolves each ref — trying `tags/` first, then `heads/` — so branch names and tag names are handled transparently.
 
 **Interactive commit activity chart** — the overview displays a bar chart of commit frequency over time. Clicking a bar filters the "Recent activity" list to show only commits from that day, with a dismissible chip showing the active filter.
+
+**Changelog time grouping** — the generated changelog can be grouped by month or week within each category, making long histories easier to read. The grouping is reflected in all export formats (`.md` gets `###` sub-headings, `.json` gets a `periods` array).
 
 ---
 
@@ -29,9 +31,10 @@ A full-stack changelog generator that turns Git commit history into structured, 
 
 - **Commit overview** — total counts by category, activity timeline, distribution bars, and top contributors at a glance
 - **Commits table** — full list with per-row category editor, date filter, and author filter
-- **Changelog view** — commits grouped and sorted by category, with one-click copy to clipboard or export as `.md`, `.txt`, or `.json`
+- **Changelog view** — commits grouped by category, with optional time sub-grouping (by month or week) and one-click copy or export as `.md`, `.txt`, or `.json`
 - **Authors view** — per-contributor breakdown showing their commits, categories, and dates
 - **Configurable settings** — toggle conventional commits detection, merge commit filtering, squash inclusion, and define keyword rules per category
+- **Branch & tag comparison** — range selectors list branches and tags in grouped, searchable dropdowns — compare `main` vs `develop` or `v1.0` vs `v2.0` directly
 - **Remote & local repos** — GitHub repos via URL (with optional token for private repos or rate limit bypass); local repos by filesystem path when running locally
 - **Multi-format export** — generated changelog can be exported as `.md` (ready to paste into `CHANGELOG.md`), `.txt` (plain text for terminals and legacy systems), or `.json` (structured with metadata for CI/CD pipelines)
 
