@@ -1,126 +1,40 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/router";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import * as Select from "@radix-ui/react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faChevronDown,
-  faCheck,
-  faArrowLeft,
-  faArrowRight,
-} from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import type { Commit } from "@/types";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 import DatePicker from "@/components/DatePicker";
-
+import FilterSelect from "@/components/FilterSelect";
+import { useCommitFilters, ALL } from "@/hooks/useCommitFilters";
 import { catStyle } from "@/lib/categoryStyles";
-
-const PAGE_SIZE = 25;
-const ALL = "__all__";
-
-function FilterSelect({
-  value,
-  onValueChange,
-  placeholder,
-  options,
-}: {
-  value: string;
-  onValueChange: (v: string) => void;
-  placeholder: string;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <Select.Root value={value} onValueChange={onValueChange}>
-      <Select.Trigger className="flex items-center justify-between w-full px-3 py-2 bg-panel border border-line rounded-lg text-[12px] font-mono text-text cursor-pointer outline-none hover:border-text-dim focus:border-add transition-colors gap-2">
-        <Select.Value placeholder={placeholder} />
-        <Select.Icon>
-          <FontAwesomeIcon icon={faChevronDown} className="w-2.5 h-2.5 text-text-dim shrink-0" />
-        </Select.Icon>
-      </Select.Trigger>
-      <Select.Portal>
-        <Select.Content
-          position="popper"
-          sideOffset={4}
-          className="z-50 w-[var(--radix-select-trigger-width)] bg-panel border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden"
-        >
-          <Select.Viewport className="p-1 max-h-60 overflow-y-auto">
-            {options.map((opt) => (
-              <Select.Item
-                key={opt.value}
-                value={opt.value}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[12px] font-mono text-text-dim cursor-pointer outline-none data-[highlighted]:bg-panel-2 data-[highlighted]:text-text data-[state=checked]:text-add"
-              >
-                <Select.ItemIndicator>
-                  <FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5" />
-                </Select.ItemIndicator>
-                <Select.ItemText>{opt.label}</Select.ItemText>
-              </Select.Item>
-            ))}
-          </Select.Viewport>
-        </Select.Content>
-      </Select.Portal>
-    </Select.Root>
-  );
-}
 
 const ALL_CATS = ["feat", "fix", "chore", "docs", "refactor", "style", "test", "other"];
 
 type Props = { commits: Commit[]; onCategoryChange: (sha: string, category: string) => void };
 
 export default function CommitsView({ commits, onCategoryChange }: Props) {
-  const router = useRouter();
-  const [page, setPage] = useState(1);
-
-  const q = router.query;
-  const search = (q.q as string) ?? "";
-  const catFilter = (q.cat as string) ?? ALL;
-  const authorFilter = (q.author as string) ?? ALL;
-  const dateFrom = (q.dateFrom as string) ?? "";
-  const dateTo = (q.dateTo as string) ?? "";
-
-  function syncUrl(updates: Record<string, string>) {
-    const next: Record<string, string> = {};
-    for (const [k, v] of Object.entries({ ...router.query, ...updates })) {
-      if (typeof v === "string" && v !== "") next[k] = v;
-    }
-    router.replace({ query: next }, undefined, { shallow: true });
-  }
-
-  const authors = useMemo(() => [...new Set(commits.map((c) => c.author))].sort(), [commits]);
-  const categories = useMemo(() => [...new Set(commits.map((c) => c.category))].sort(), [commits]);
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return commits.filter((c) => {
-      if (catFilter !== ALL && c.category !== catFilter) return false;
-      if (authorFilter !== ALL && c.author !== authorFilter) return false;
-      if (
-        q &&
-        !c.message.toLowerCase().includes(q) &&
-        !c.author.toLowerCase().includes(q) &&
-        !c.sha.includes(q)
-      )
-        return false;
-      if (dateFrom && new Date(c.date) < new Date(dateFrom)) return false;
-      if (dateTo && new Date(c.date) > new Date(dateTo + "T23:59:59")) return false;
-      return true;
-    });
-  }, [commits, search, catFilter, authorFilter, dateFrom, dateTo]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageCommits = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  const hasFilters = search || catFilter !== ALL || authorFilter !== ALL || dateFrom || dateTo;
-
-  function resetFilters() {
-    setPage(1);
-    syncUrl({ q: "", cat: "", author: "", dateFrom: "", dateTo: "" });
-  }
+  const {
+    search,
+    catFilter,
+    authorFilter,
+    dateFrom,
+    dateTo,
+    authors,
+    categories,
+    filtered,
+    pageCommits,
+    currentPage,
+    totalPages,
+    hasFilters,
+    setPage,
+    syncUrl,
+    resetFilters,
+  } = useCommitFilters(commits);
 
   const catOptions = [
     { value: ALL, label: "All categories" },
@@ -158,36 +72,24 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
         />
         <FilterSelect
           value={catFilter}
-          onValueChange={(v) => {
-            setPage(1);
-            syncUrl({ cat: v });
-          }}
+          onValueChange={(v) => { setPage(1); syncUrl({ cat: v }); }}
           placeholder="All categories"
           options={catOptions}
         />
         <FilterSelect
           value={authorFilter}
-          onValueChange={(v) => {
-            setPage(1);
-            syncUrl({ author: v });
-          }}
+          onValueChange={(v) => { setPage(1); syncUrl({ author: v }); }}
           placeholder="All authors"
           options={authorOptions}
         />
         <DatePicker
           value={dateFrom}
-          onChange={(v) => {
-            setPage(1);
-            syncUrl({ dateFrom: v });
-          }}
+          onChange={(v) => { setPage(1); syncUrl({ dateFrom: v }); }}
           placeholder="From (date)"
         />
         <DatePicker
           value={dateTo}
-          onChange={(v) => {
-            setPage(1);
-            syncUrl({ dateTo: v });
-          }}
+          onChange={(v) => { setPage(1); syncUrl({ dateTo: v }); }}
           placeholder="To (date)"
         />
       </div>
