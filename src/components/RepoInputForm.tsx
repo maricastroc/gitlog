@@ -39,7 +39,7 @@ export function RepoInputForm({
   onAnalyze,
 }: Props) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       {tab === "remote" ? (
         <>
           <FormField label="Repository URL">
@@ -106,7 +106,7 @@ export function RepoInputForm({
         </FormField>
       )}
 
-      <Button onClick={onAnalyze} loading={isLoading} className="w-full mt-2 py-3">
+      <Button onClick={onAnalyze} loading={isLoading} disabled={tab === "remote" ? !repoUrl.trim() : !localPath.trim()} className="w-full mt-2 py-3">
         Analyze repository <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
       </Button>
 
