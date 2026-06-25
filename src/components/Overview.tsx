@@ -1,7 +1,7 @@
 "use client";
 
 import type { Commit, RepoInfo, Ref } from "@/types";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import PageHeader from "@/components/PageHeader";
@@ -58,7 +58,7 @@ export default function Overview({
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const authors = [...new Set(commits.map((c) => c.author))];
+  const authors = useMemo(() => [...new Set(commits.map((c) => c.author))], [commits]);
   const dates = commits.map((c) => new Date(c.date)).sort((a, b) => a.getTime() - b.getTime());
   const since = dates[0] ? format(dates[0], "d MMM yyyy", { locale: enUS }) : "—";
   const until = dates.at(-1) ? format(dates.at(-1)!, "d MMM yyyy", { locale: enUS }) : "—";
@@ -190,22 +190,23 @@ export default function Overview({
               Distribution by category
             </p>
             <div className="flex flex-col gap-2.5">
-              {sortedCats.map(([cat, count]) => (
-                <div key={cat}>
-                  <div className="flex justify-between text-[11px] mb-1">
-                    <span className="text-text-dim">{cat}</span>
-                    <span className="text-text-dim">
-                      {Math.round((count / commits.length) * 100)}%
-                    </span>
+              {sortedCats.map(([cat, count]) => {
+                const pct = Math.round((count / commits.length) * 100);
+                return (
+                  <div key={cat}>
+                    <div className="flex justify-between text-[11px] mb-1">
+                      <span className="text-text-dim">{cat}</span>
+                      <span className="text-text-dim">{pct}%</span>
+                    </div>
+                    <div className="h-1 bg-panel-2 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${catStyle(cat).bar}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-1 bg-panel-2 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${catStyle(cat).bar}`}
-                      style={{ width: `${Math.round((count / commits.length) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

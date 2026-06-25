@@ -35,13 +35,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (type === "local") {
     if (!repoPath) return res.status(400).json({ error: "path is required" });
+    if (repoPath.includes("\0")) return res.status(400).json({ error: "Invalid path" });
     if (since && !SAFE_REF_RE.test(since))
       return res.status(400).json({ error: "Invalid since ref" });
     if (until && !SAFE_REF_RE.test(until))
       return res.status(400).json({ error: "Invalid until ref" });
-    const range = since && until ? `${since}..${until}` : since ? `${since}..HEAD` : "";
     const gitArgs = ["-C", repoPath, "log"];
-    if (range) gitArgs.push(range);
+    if (since && until) gitArgs.push(`${since}..${until}`);
+    else if (since) gitArgs.push(`${since}..HEAD`);
+    else if (until) gitArgs.push(until); // limit history to commits reachable from 'until'
     gitArgs.push("--format=%H\x00%s\x00%aN\x00%aI");
     if (ignoreMerge) gitArgs.push("--no-merges");
     const result = spawnSync("git", gitArgs, { encoding: "utf8" });
@@ -163,7 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { data, status, error, truncated } = await fetchAllPages(
     `https://api.github.com/repos/${owner}/${repo}/commits?${params}`,
   );
-  if (error) return res.status(status).json({ error });
+  if (error && data.length === 0) return res.status(status).json({ error });
 
   const MERGE_RE = /^Merge (pull request|branch)\b/i;
 
@@ -178,5 +180,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       category: categorize(c.commit.message.split("\n")[0], userKeywords, conventionalCommits),
     }));
 
-  return res.json({ data: commits, truncated: truncated ?? false });
+  return res.json({ data: commits, truncated: (truncated ?? false) || !!error });
 }

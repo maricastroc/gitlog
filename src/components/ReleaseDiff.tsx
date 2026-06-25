@@ -6,6 +6,7 @@ import { api } from "@/lib/axios";
 import { buildRefOptions } from "@/lib/refOptions";
 import TagSelect from "@/components/TagSelect";
 import DiffResult from "@/components/DiffResult";
+import TruncatedBanner from "@/components/TruncatedBanner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
@@ -146,16 +147,7 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
       )}
 
       {compareState.status === "done" && compareState.truncated && (
-        <p
-          className="text-[11px] font-mono text-[var(--color-fix)] mb-3"
-          style={{
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: 6,
-            padding: "6px 10px",
-          }}
-        >
-          Showing the first 1,000 commits. Use a narrower range to see the full history.
-        </p>
+        <TruncatedBanner className="mb-3" />
       )}
 
       {compareState.status === "done" && (

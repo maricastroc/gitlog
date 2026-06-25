@@ -43,9 +43,13 @@ export default function ChangelogView({ commits, repoInfo, showAuthor = false, o
   const allAuthors = useMemo(() => [...new Set(commits.map((c) => c.author))].sort(), [commits]);
   const [selectedAuthors, setSelectedAuthors] = useState<Set<string>>(() => new Set(allAuthors));
 
+  // Use a content-stable key so the filter only resets when the actual author list changes,
+  // not on every re-render that produces a new array reference with the same authors.
+  const authorsKey = allAuthors.join("\0");
   useEffect(() => {
     setSelectedAuthors(new Set(allAuthors));
-  }, [allAuthors]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authorsKey]);
 
   function toggleAuthor(author: string) {
     setSelectedAuthors((prev) => {

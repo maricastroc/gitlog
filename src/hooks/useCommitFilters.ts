@@ -41,12 +41,9 @@ export function useCommitFilters(commits: Commit[]) {
         !c.sha.includes(term)
       )
         return false;
-      if (dateFrom && new Date(c.date) < new Date(dateFrom + "T00:00:00")) return false;
-      if (dateTo) {
-        const end = new Date(dateTo);
-        end.setHours(23, 59, 59, 999);
-        if (new Date(c.date) > end) return false;
-      }
+      const commitDate = new Date(c.date);
+      if (dateFrom && commitDate < new Date(dateFrom + "T00:00:00")) return false;
+      if (dateTo && commitDate > new Date(dateTo + "T23:59:59.999")) return false;
       return true;
     });
   }, [commits, search, catFilter, authorFilter, dateFrom, dateTo]);

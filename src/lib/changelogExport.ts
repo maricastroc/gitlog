@@ -25,8 +25,8 @@ export function groupByPeriod(
   }
   return [...map.entries()]
     .sort((a, b) => {
-      const latestA = Math.max(...a[1].map((c) => new Date(c.date).getTime()));
-      const latestB = Math.max(...b[1].map((c) => new Date(c.date).getTime()));
+      const latestA = a[1].reduce((m, c) => Math.max(m, new Date(c.date).getTime()), -Infinity);
+      const latestB = b[1].reduce((m, c) => Math.max(m, new Date(c.date).getTime()), -Infinity);
       return latestB - latestA;
     })
     .map(([period, commits]) => ({ period, commits }));
@@ -80,7 +80,7 @@ export function generateJSON({ groups, sorted, grouping, range }: ExportInput): 
   const data = {
     generatedAt: new Date().toISOString(),
     grouping,
-    range: { from: range.from ?? null, to: range.to ?? "HEAD" },
+    range: { ...(range.from ? { from: range.from } : {}), to: range.to ?? "HEAD" },
     categories: Object.fromEntries(
       sorted.map((cat) => [
         cat,

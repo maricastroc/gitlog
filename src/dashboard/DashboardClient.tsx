@@ -15,6 +15,7 @@ import SettingsView from "@/components/SettingsView";
 import AuthorView from "@/components/AuthorView";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { EmptyState } from "@/components/EmptyState";
+import TruncatedBanner from "@/components/TruncatedBanner";
 import type { Commit, RepoInfo, View, Ref } from "@/types";
 
 const REPO_VIEWS: View[] = ["overview", "commits", "changelog", "authors"];
@@ -251,13 +252,7 @@ export default function DashboardClient() {
         </div>
 
         {repoInfo?.truncated && REPO_VIEWS.includes(view) && (
-          <div
-            className="mb-4 px-3 py-2 rounded-lg bg-[var(--color-fix)]/10 text-[var(--color-fix)] text-xs font-mono"
-            style={{ border: "1px solid rgba(255, 255, 255, 0.12)" }}
-          >
-            Showing the first 1,000 commits. Use a narrower range (e.g. between two tags) to see the
-            full history.
-          </div>
+          <TruncatedBanner className="mb-4" />
         )}
 
         {view === "overview" && repoInfo && (
