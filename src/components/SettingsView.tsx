@@ -9,6 +9,7 @@ import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/components/Button";
 import { catStyle } from "@/lib/categoryStyles";
+import { DEFAULT_SETTINGS } from "@/hooks/useSettings";
 
 type Props = { settings: Settings; setSettings: (s: Settings) => void };
 
@@ -78,9 +79,14 @@ export default function SettingsView({ settings, setSettings }: Props) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="panel">
-          <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">
-            Keywords by category
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-text-dim text-[10px] uppercase tracking-widest">
+              Keywords by category
+            </p>
+            <Button variant="ghost" onClick={() => setDraft({ ...draft, keywords: DEFAULT_SETTINGS.keywords })} className="text-[9.5px] px-2 py-1">
+              reset to defaults
+            </Button>
+          </div>
 
           <div className="flex flex-col divide-y divide-line mb-4">
             {Object.entries(draft.keywords).map(([cat, kws]) => (
@@ -155,12 +161,12 @@ export default function SettingsView({ settings, setSettings }: Props) {
           </div>
         </div>
 
-        <div className="panel flex flex-col">
+        <div className="panel">
           <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">
             Parser behavior
           </p>
 
-          <div className="flex flex-col gap-4 flex-1">
+          <div className="flex flex-col gap-4">
             {toggles.map(({ key, label, desc }) => (
               <div key={key} className="flex items-start justify-between gap-4">
                 <div>
@@ -178,34 +184,34 @@ export default function SettingsView({ settings, setSettings }: Props) {
               </div>
             ))}
           </div>
-
-          <span
-            data-tooltip-id="save-settings"
-            data-tooltip-content="Change a setting before saving"
-            className="mt-6"
-            style={{ display: !isDirty && !saved ? "block" : "contents" }}
-          >
-            <Button onClick={handleSave} disabled={!isDirty && !saved} className="w-full py-2.5">
-              {saved ? <><FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5" /> settings saved</> : isDirty ? "save settings" : "no changes"}
-            </Button>
-          </span>
-          {!isDirty && !saved && (
-            <Tooltip
-              id="save-settings"
-              place="top"
-              style={{
-                fontSize: 11,
-                fontFamily: "var(--font-mono, monospace)",
-                padding: "5px 10px",
-                backgroundColor: "#2e3338",
-                color: "#d0d5db",
-                border: "1px solid #3d4349",
-                borderRadius: 6,
-              }}
-            />
-          )}
         </div>
       </div>
+
+      <span
+        data-tooltip-id="save-settings"
+        data-tooltip-content="Change a setting before saving"
+        className="mt-3 block"
+        style={{ display: !isDirty && !saved ? "block" : "contents" }}
+      >
+        <Button onClick={handleSave} disabled={!isDirty && !saved} className="w-full py-2.5">
+          {saved ? <><FontAwesomeIcon icon={faCheck} className="w-2.5 h-2.5" /> settings saved</> : isDirty ? "save settings" : "no changes"}
+        </Button>
+      </span>
+      {!isDirty && !saved && (
+        <Tooltip
+          id="save-settings"
+          place="top"
+          style={{
+            fontSize: 11,
+            fontFamily: "var(--font-mono, monospace)",
+            padding: "5px 10px",
+            backgroundColor: "#2e3338",
+            color: "#d0d5db",
+            border: "1px solid #3d4349",
+            borderRadius: 6,
+          }}
+        />
+      )}
     </div>
   );
 }

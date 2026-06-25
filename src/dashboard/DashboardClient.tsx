@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/router";
 import { useRecentRepos } from "@/hooks/useRecentRepos";
 import { useSettings } from "@/hooks/useSettings";
 import { api } from "@/lib/axios";
+import { categorize } from "@/lib/categorize";
 import Sidebar from "@/components/Sidebar";
 import SelectRepo from "@/components/SelectRepo";
 import Overview from "@/components/Overview";
@@ -23,6 +24,7 @@ async function fetchRemoteCommits(
   ignoreMerge = true,
   conventionalCommits = true,
   ignoreBots = true,
+  keywords: Record<string, string[]> = {},
 ): Promise<Commit[]> {
   const params: Record<string, string> = {
     type: "remote",
@@ -31,6 +33,7 @@ async function fetchRemoteCommits(
     ignoreMerge: String(ignoreMerge),
     conventionalCommits: String(conventionalCommits),
     ignoreBots: String(ignoreBots),
+    keywords: JSON.stringify(keywords),
   };
 
   if (from) params.since = from;
@@ -61,11 +64,16 @@ export default function DashboardClient() {
 
   const [hasExported, setHasExported] = useState(false);
 
-  const ignoreMergeInitialized = useRef(false);
+  const categorizedCommits = useMemo(
+    () => commits.map((c) => ({ ...c, category: categorize(c.message, settings.keywords, settings.conventionalCommits) })),
+    [commits, settings.keywords, settings.conventionalCommits],
+  );
+
+  const filterInitialized = useRef(false);
 
   useEffect(() => {
-    if (!ignoreMergeInitialized.current) {
-      ignoreMergeInitialized.current = true;
+    if (!filterInitialized.current) {
+      filterInitialized.current = true;
       return;
     }
     if (!repoInfo) return;
@@ -78,6 +86,7 @@ export default function DashboardClient() {
         settings.ignoreMerge,
         settings.conventionalCommits,
         settings.ignoreBots,
+        settings.keywords,
       )
         .then((data) => setCommits(data))
         .catch(() => {});
@@ -98,7 +107,7 @@ export default function DashboardClient() {
         .catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots]);
+  }, [settings.ignoreMerge, settings.ignoreBots]);
 
   useEffect(() => {
     if (autoLoaded.current || !router.isReady) return;
@@ -108,7 +117,7 @@ export default function DashboardClient() {
     if (!owner || !repoName) return;
     autoLoaded.current = true;
 
-    fetchRemoteCommits(owner, repoName, from, settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots)
+    fetchRemoteCommits(owner, repoName, from, settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots, settings.keywords)
       .then((data) => {
         setWelcomed(true);
         handleRepoLoaded(
@@ -185,7 +194,7 @@ export default function DashboardClient() {
 
     setWelcomed(true);
 
-    fetchRemoteCommits(owner, repo, recent.from, settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots)
+    fetchRemoteCommits(owner, repo, recent.from, settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots, settings.keywords)
       .then((data) => {
         handleRepoLoaded(
           {
@@ -240,7 +249,7 @@ export default function DashboardClient() {
 
         {view === "overview" && repoInfo && (
           <Overview
-            commits={commits}
+            commits={categorizedCommits}
             repoInfo={repoInfo}
             refs={refs}
             onViewAllCommits={() => handleSetView("commits")}
@@ -248,17 +257,17 @@ export default function DashboardClient() {
           />
         )}
         {view === "commits" && repoInfo && (
-          <CommitsView commits={commits} onCategoryChange={handleCategoryChange} />
+          <CommitsView commits={categorizedCommits} onCategoryChange={handleCategoryChange} />
         )}
         {view === "changelog" && repoInfo && (
           <ChangelogView
-            commits={commits}
+            commits={categorizedCommits}
             repoInfo={repoInfo}
             showAuthor={settings.showAuthor}
             onExport={() => setHasExported(true)}
           />
         )}
-        {view === "authors" && repoInfo && <AuthorView commits={commits} />}
+        {view === "authors" && repoInfo && <AuthorView commits={categorizedCommits} />}
         {view === "settings" && <SettingsView settings={settings} setSettings={setSettings} />}
         {noRepo && <EmptyState onSelect={() => handleSetView("select")} />}
       </main>
