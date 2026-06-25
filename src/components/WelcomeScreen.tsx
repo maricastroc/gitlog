@@ -70,7 +70,7 @@ function CommitTransformAnimation() {
   }, {});
 
   return (
-    <div className="w-full flex items-stretch gap-2 select-none">
+    <div className="w-full flex items-stretch gap-2 select-none" style={{ height: 220 }}>
       <div
         className={`flex-1 rounded-xl border border-line bg-panel font-mono text-[11px] overflow-hidden flex flex-col transition-opacity duration-500 ${phase === "result" ? "opacity-25" : "opacity-100"}`}
       >
