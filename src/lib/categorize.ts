@@ -44,5 +44,24 @@ export function categorize(
     )
   )
     return "refactor";
+  // bracket scope [scope] or bare prefix: — used by next.js, vscode, etc.
+  const scopeMatch = m.match(/^\[([^\]]+)\]/) ?? m.match(/^([a-z][a-z0-9-]*):/);
+  if (scopeMatch) {
+    const scope = scopeMatch[1].toLowerCase();
+    if (/fix|bug|patch|hotfix|revert/.test(scope)) return "fix";
+    if (/feat|add|new|impl|support/.test(scope)) return "feat";
+    if (/doc|readme|changelog|guide|example/.test(scope)) return "docs";
+    if (/test|spec|e2e|coverage/.test(scope)) return "test";
+    if (/style|css|ui|design|theme|format|lint/.test(scope)) return "style";
+    if (
+      /refactor|rename|rewrite|restructure|cleanup|chore|build|ci|config|deps|bump|upgrade|codemod|skip/.test(
+        scope,
+      )
+    )
+      return "refactor";
+    // unknown scope but structured commit → refactor (better than "other")
+    return "refactor";
+  }
+
   return "other";
 }
