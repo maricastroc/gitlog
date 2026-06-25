@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "@/lib/axios";
-import type { Commit, RepoInfo, Settings } from "@/types";
+import type { Commit, Ref, RepoInfo, Settings } from "@/types";
 import type { AxiosError } from "axios";
 
 type RemoteParams = { type: "remote"; owner: string; repo: string; token?: string };
@@ -9,14 +9,14 @@ type RepoParams   = RemoteParams | LocalParams;
 
 type State = {
   step: 0 | 1;
-  tags: string[];
+  refs: Ref[];
   error: string;
   isLoading: boolean;
   from: string;
   to: string;
 };
 
-const INITIAL: State = { step: 0, tags: [], error: "", isLoading: false, from: "", to: "HEAD" };
+const INITIAL: State = { step: 0, refs: [], error: "", isLoading: false, from: "", to: "HEAD" };
 
 function extractError(err: unknown): string {
   return (err as AxiosError<{ error: string }>)?.response?.data?.error ?? "Erro inesperado";
@@ -32,9 +32,9 @@ export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[]) => v
   async function fetchTags(params: RepoParams) {
     set({ isLoading: true, error: "" });
     try {
-      const res = await api.get<{ data: string[] }>("/tags", { params });
-      const tags = res.data.data ?? [];
-      set({ step: 1, tags, from: tags[0] ?? "", isLoading: false });
+      const res = await api.get<{ data: Ref[] }>("/tags", { params });
+      const refs = res.data.data ?? [];
+      set({ step: 1, refs, from: refs[0]?.name ?? "", isLoading: false });
     } catch (err) {
       set({ error: extractError(err), isLoading: false });
     }
@@ -76,4 +76,5 @@ export function useRepoLoader(onLoaded: (info: RepoInfo, commits: Commit[]) => v
     setTo:   (to: string)   => set({ to }),
     reset,
   };
+
 }

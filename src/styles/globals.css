@@ -117,6 +117,21 @@ input:-webkit-autofill:focus {
   color: var(--color-add);
 }
 
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-dim);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

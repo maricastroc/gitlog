@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { execSync } from "child_process";
+import type { Ref } from "@/types";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
@@ -13,11 +14,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (type === "local") {
     if (!path) return res.status(400).json({ error: "path is required" });
     try {
-      const raw = execSync(`git -C "${path}" tag --sort=-creatordate`, { encoding: "utf8" });
-      const tags = raw.trim().split("\n").filter(Boolean);
-      return res.json({ data: tags });
+      const rawTags     = execSync(`git -C "${path}" tag --sort=-creatordate`, { encoding: "utf8" });
+      const rawBranches = execSync(`git -C "${path}" branch --format="%(refname:short)"`, { encoding: "utf8" });
+      const tags: Ref[]     = rawTags.trim().split("\n").filter(Boolean).map((n) => ({ name: n, type: "tag" }));
+      const branches: Ref[] = rawBranches.trim().split("\n").filter(Boolean).map((n) => ({ name: n, type: "branch" }));
+      return res.json({ data: [...branches, ...tags] });
     } catch {
-      return res.status(500).json({ error: "Failed to read tags from local repository" });
+      return res.status(500).json({ error: "Failed to read refs from local repository" });
     }
   }
 
@@ -25,11 +28,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const headers: HeadersInit = { Accept: "application/vnd.github+json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/tags?per_page=50`, { headers });
-  if (!ghRes.ok) {
-    const err = await ghRes.json();
-    return res.status(ghRes.status).json({ error: err.message });
+  const [tagsRes, branchesRes] = await Promise.all([
+    fetch(`https://api.github.com/repos/${owner}/${repo}/tags?per_page=50`, { headers }),
+    fetch(`https://api.github.com/repos/${owner}/${repo}/branches?per_page=50`, { headers }),
+  ]);
+
+  if (!tagsRes.ok) {
+    const err = await tagsRes.json() as { message?: string };
+    return res.status(tagsRes.status).json({ error: err.message });
   }
-  const data = await ghRes.json();
-  return res.json({ data: data.map((t: any) => t.name) });
+
+  const tagsData     = await tagsRes.json() as { name: string }[];
+  const branchesData = branchesRes.ok ? (await branchesRes.json() as { name: string }[]) : [];
+
+  const tags: Ref[]     = tagsData.map((t) => ({ name: t.name, type: "tag" }));
+  const branches: Ref[] = branchesData.map((b) => ({ name: b.name, type: "branch" }));
+
+  return res.json({ data: [...branches, ...tags] });
 }

@@ -38,8 +38,16 @@ export default function SelectRepo({ onLoaded, recents = [], keywords = {} }: Pr
 
   const [validationError, setValidationError] = useState("");
 
-  const fromOptions = [{ value: "", label: "beginning of history" }, ...loader.tags.map((t) => ({ value: t, label: t }))];
-  const toOptions   = [{ value: "HEAD", label: "HEAD" },             ...loader.tags.map((t) => ({ value: t, label: t }))];
+  const fromOptions = [
+    { value: "", label: "beginning of history" },
+    ...loader.refs.filter((r) => r.type === "branch").map((r) => ({ value: r.name, label: r.name, group: "Branches" })),
+    ...loader.refs.filter((r) => r.type === "tag").map((r) => ({ value: r.name, label: r.name, group: "Tags" })),
+  ];
+  const toOptions = [
+    { value: "HEAD", label: "HEAD" },
+    ...loader.refs.filter((r) => r.type === "branch").map((r) => ({ value: r.name, label: r.name, group: "Branches" })),
+    ...loader.refs.filter((r) => r.type === "tag").map((r) => ({ value: r.name, label: r.name, group: "Tags" })),
+  ];
 
   function handleAnalyze() {
     setValidationError("");
@@ -71,8 +79,8 @@ export default function SelectRepo({ onLoaded, recents = [], keywords = {} }: Pr
       <div className="w-full md:w-[420px] md:shrink-0">
         <Stepper step={loader.step} />
         <PageHeader
-          title={loader.step === 0 ? "Select repository" : "Select tag range"}
-          description={loader.step === 0 ? "Import a Git repository to generate changelogs." : "Choose the tag range to filter commits."}
+          title={loader.step === 0 ? "Select repository" : "Select range"}
+          description={loader.step === 0 ? "Import a Git repository to generate changelogs." : "Choose two branches or tags to compare."}
         />
 
         {loader.step === 0 && (
@@ -194,7 +202,14 @@ export default function SelectRepo({ onLoaded, recents = [], keywords = {} }: Pr
       </div>
 
       <div className="flex-1 md:pt-16">
-        <RepoPreviewPanel preview={tab === "remote" ? preview : null} loading={previewLoading} />
+        <RepoPreviewPanel
+          preview={tab === "remote" ? preview : null}
+          loading={previewLoading}
+          step={loader.step}
+          refs={loader.refs}
+          from={loader.from}
+          to={loader.to}
+        />
       </div>
     </div>
   );

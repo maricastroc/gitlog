@@ -37,10 +37,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   async function resolveSha(ref: string) {
     if (!ref || ref === "HEAD") return null;
-    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/tags/${ref}`, { headers });
-    if (!r.ok) return null;
-    const d = await r.json() as { object?: { sha?: string } };
-    return d.object?.sha ?? null;
+    for (const prefix of ["tags", "heads"]) {
+      const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/${prefix}/${ref}`, { headers });
+      if (r.ok) {
+        const d = await r.json() as { object?: { sha?: string } };
+        if (d.object?.sha) return d.object.sha;
+      }
+    }
+    return null;
   }
 
   const params = new URLSearchParams({ per_page: "100" });
