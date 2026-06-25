@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import * as Popover from "@radix-ui/react-popover";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faCheck, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
 
@@ -15,7 +15,7 @@ import { catStyle, CAT_ORDER } from "@/lib/categoryStyles";
 
 type Grouping = "none" | "month" | "week";
 
-type Props = { commits: Commit[]; repoInfo: RepoInfo };
+type Props = { commits: Commit[]; repoInfo: RepoInfo; onExport?: () => void };
 
 function periodKey(date: string, grouping: Grouping): string {
   const d = new Date(date);
@@ -37,7 +37,7 @@ function groupByPeriod(commits: Commit[], grouping: Grouping): { period: string;
     .map(([period, commits]) => ({ period, commits }));
 }
 
-export default function ChangelogView({ commits, repoInfo }: Props) {
+export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [authorOpen, setAuthorOpen] = useState(false);
@@ -142,12 +142,15 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
   }
 
   function handleExport(fmt: "md" | "txt" | "json") {
+    onExport?.();
     if (fmt === "md")   return download(generateMarkdown(),  "CHANGELOG.md",   "text/markdown");
     if (fmt === "txt")  return download(generatePlainText(), "CHANGELOG.txt",  "text/plain");
     if (fmt === "json") return download(generateJSON(),      "changelog.json", "application/json");
   }
 
-  const intervalLabel = repoInfo.from ? `${repoInfo.from} → ${repoInfo.to ?? "HEAD"}` : "HEAD";
+  const intervalLabel = repoInfo.from
+    ? <>{repoInfo.from} <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 inline" /> {repoInfo.to ?? "HEAD"}</>
+    : <>HEAD</>;
 
   const GROUPING_OPTIONS: { value: Grouping; label: string }[] = [
     { value: "none",  label: "No grouping" },

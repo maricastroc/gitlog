@@ -10,7 +10,7 @@ import CategoryBadge from "@/components/CategoryBadge";
 import { catStyle } from "@/lib/categoryStyles";
 import { groupBy } from "@/lib/commitStats";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLink, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faLink, faCheck, faScroll, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
 type Props = { commits: Commit[]; repoInfo: RepoInfo; refs?: Ref[]; onViewAllCommits: () => void; onViewChangelog: () => void };
 
@@ -90,8 +90,8 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
   ];
 
   const rangeLabel = repoInfo.from
-    ? `${repoInfo.from} → ${repoInfo.to ?? "HEAD"}`
-    : `HEAD`;
+    ? <>{repoInfo.from} <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 inline" /> {repoInfo.to ?? "HEAD"}</>
+    : <>HEAD</>;
 
   return (
     <div className="w-full">
@@ -118,7 +118,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
             onClick={onViewChangelog}
             className="flex flex-col items-center px-5 py-2.5 rounded-lg bg-add-dim border border-add text-add font-mono hover:brightness-110 transition-all cursor-pointer"
           >
-            <span className="text-[13px] font-semibold">◎ generate changelog</span>
+            <span className="text-[13px] font-semibold flex items-center gap-2"><FontAwesomeIcon icon={faScroll} className="w-3 h-3" /> generate changelog</span>
             <span className="text-[10px] opacity-70">{commits.length} commits · {authors.length} authors</span>
           </button>
         </div>
@@ -157,7 +157,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
                 )}
               </div>
               <button onClick={onViewAllCommits} className="text-[11px] text-add font-mono hover:underline underline-offset-2 cursor-pointer">
-                view all →
+                view all <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5" />
               </button>
             </div>
             <div className="flex flex-col gap-2.5">
@@ -214,7 +214,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
           )}
         </div>
 
-        <div className="lg:col-span-2 flex flex-col gap-3">
+        <div className="lg:col-span-2 flex flex-col gap-3 lg:h-full">
           <div className="panel">
             <p className="text-text-dim text-[10px] uppercase tracking-widest mb-3.5">Distribution by category</p>
             <div className="flex flex-col gap-2.5">
@@ -232,7 +232,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
             </div>
           </div>
 
-          <div className="panel">
+          <div className="panel flex-1">
             <p className="text-text-dim text-[10px] uppercase tracking-widest mb-3.5">Top authors</p>
             <div className="flex flex-col gap-2.5">
               {sortedAuthors.slice(0, 5).map(([author, count]) => (

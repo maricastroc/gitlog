@@ -2,7 +2,7 @@
 
 import type { View, RepoInfo } from "@/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCodeBranch, faChartPie, faListUl, faSlidersH, faClockRotateLeft, type IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { faCodeBranch, faChartPie, faListUl, faSlidersH, faClockRotateLeft, faArrowDown, type IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { Tooltip } from "react-tooltip";
 
 type Props = { view: View; setView: (v: View) => void; repoInfo: RepoInfo | null };
@@ -73,7 +73,7 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
           <div className="mt-auto pt-3 border-t border-line px-2">
             <p className="text-text-dim text-[9px] uppercase tracking-widest mb-1.5">Range</p>
             <p className="text-add text-[11px] font-mono">{repoInfo.from}</p>
-            <p className="text-text-dim text-[10px]">→</p>
+            <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5 text-text-dim my-0.5" />
             <p className="text-text text-[11px] font-mono">{repoInfo.to ?? "HEAD"}</p>
           </div>
         )}

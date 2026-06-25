@@ -1,4 +1,5 @@
-type Props = { title: string; description?: string };
+import type { ReactNode } from "react";
+type Props = { title: string; description?: ReactNode };
 
 export default function PageHeader({ title, description }: Props) {
   return (

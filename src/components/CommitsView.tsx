@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import * as Select from "@radix-ui/react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faCheck, faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import type { Commit } from "@/types";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
@@ -166,8 +166,8 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
         <div className="flex items-center justify-between mt-4">
           <span className="text-text-dim text-[12px] font-mono">page {currentPage} of {totalPages}</span>
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 text-sm">← previous</Button>
-            <Button variant="ghost" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1.5 text-sm">next →</Button>
+            <Button variant="ghost" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 text-sm"><FontAwesomeIcon icon={faArrowLeft} className="w-3 h-3" /> previous</Button>
+            <Button variant="ghost" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1.5 text-sm">next <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" /></Button>
           </div>
         </div>
       )}

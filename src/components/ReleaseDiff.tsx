@@ -8,6 +8,8 @@ import { groupBy } from "@/lib/commitStats";
 import TagSelect from "@/components/TagSelect";
 
 import { catStyle } from "@/lib/categoryStyles";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
 type CompareState =
   | { status: "idle" }
@@ -127,7 +129,7 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
           disabled={compareState.status === "loading" || refsLoading}
           className="px-4 py-3 rounded-lg bg-add-dim border border-add text-add text-[13px] font-mono hover:brightness-110 transition-all cursor-pointer disabled:opacity-50"
         >
-          {compareState.status === "loading" ? "loading..." : "Compare →"}
+          {compareState.status === "loading" ? "loading..." : <>Compare <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" /></>}
         </button>
       </div>
 
@@ -155,8 +157,9 @@ function DiffResult({ commits, baseline, repoInfo, baseFrom, baseTo }: {
   
   const allCats = [...new Set([...Object.keys(currByCat), ...Object.keys(baseByCat)])].sort();
 
-  const currLabel = repoInfo.from ? `${repoInfo.from} → ${repoInfo.to ?? "HEAD"}` : "current";
-  const baseLabel = baseFrom ? `${baseFrom} → ${baseTo}` : "baseline";
+  const arrowIcon = <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 inline mx-0.5" />;
+  const currLabel = repoInfo.from ? <>{repoInfo.from} {arrowIcon} {repoInfo.to ?? "HEAD"}</> : <>current</>;
+  const baseLabel = baseFrom ? <>{baseFrom} {arrowIcon} {baseTo}</> : <>baseline</>;
 
   return (
     <div>

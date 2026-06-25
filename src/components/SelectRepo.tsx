@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLock, faChevronRight, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faChevronRight, faClockRotateLeft, faScroll, faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import type { Commit, RepoInfo, Settings } from "@/types";
 import type { RecentRepo } from "@/hooks/useRecentRepos";
 import { useRepoPreview } from "@/hooks/useRepoPreview";
@@ -15,7 +15,7 @@ import RepoPreviewPanel from "@/components/RepoPreviewPanel";
 import PageHeader from "@/components/PageHeader";
 import { buildRefOptions } from "@/lib/refOptions";
 
-type Props = { onLoaded: (info: RepoInfo, commits: Commit[]) => void; onQuickLoad?: (recent: RecentRepo) => void; recents?: RecentRepo[]; keywords?: Settings["keywords"] };
+type Props = { onLoaded: (info: RepoInfo, commits: Commit[]) => void; onQuickLoad?: (recent: RecentRepo) => void; recents?: RecentRepo[]; keywords?: Settings["keywords"]; hasExported?: boolean };
 
 function parseRemote(url: string) {
   const match = url.match(/github\.com[/:]([^/]+)\/([^/\s.]+)/);
@@ -25,7 +25,7 @@ function parseRemote(url: string) {
   return null;
 }
 
-export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywords = {} }: Props) {
+export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywords = {}, hasExported = false }: Props) {
   const [tab, setTab]             = useState<"remote" | "local">("remote");
   const [repoUrl, setRepoUrl]     = useState("");
   const [token, setToken]         = useState("");
@@ -38,6 +38,7 @@ export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywor
   const loader = useRepoLoader(onLoaded, keywords);
 
   const [validationError, setValidationError] = useState("");
+  const [hasProcessed, setHasProcessed] = useState(false);
 
   const { fromOptions, toOptions } = buildRefOptions(loader.refs);
 
@@ -53,6 +54,7 @@ export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywor
   }
 
   function handleProcess() {
+    setHasProcessed(true);
     if (tab === "local") {
       loader.fetchCommits({ type: "local", path: localPath });
     } else {
@@ -69,7 +71,7 @@ export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywor
   return (
     <div className="flex flex-col md:flex-row gap-8 md:gap-12 h-full">
       <div className="w-full md:w-[520px] md:shrink-0">
-        <Stepper step={loader.step} />
+        <Stepper step={hasProcessed ? 2 : loader.step} />
         <PageHeader
           title={loader.step === 0 ? "Select repository" : "Select range"}
           description={loader.step === 0 ? "Import a Git repository to generate changelogs." : "Choose two branches or tags to compare."}
@@ -144,7 +146,7 @@ export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywor
               )}
 
               <Button onClick={handleAnalyze} loading={loader.isLoading} className="w-full mt-2 py-3">
-                Analyze repository →
+                Analyze repository <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
               </Button>
               {(validationError || loader.error) && (
                 <p className="text-red-400 text-sm">{validationError || loader.error}</p>
@@ -175,12 +177,12 @@ export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywor
                           <span className="text-text text-[12px] font-mono truncate block">{r.label}</span>
                           {hasRange && (
                             <span className="text-text-dim text-[10px] font-mono truncate block">
-                              {r.from || "start"} → {r.to ?? "HEAD"}
+                              {r.from || "start"} <FontAwesomeIcon icon={faArrowRight} className="w-2 h-2 inline" /> {r.to ?? "HEAD"}
                             </span>
                           )}
                         </div>
                         {hasRange && (
-                          <span className="text-add text-[10px] font-mono shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                          <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 text-add shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                         )}
                       </button>
                     );
@@ -202,8 +204,8 @@ export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywor
               </FormField>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={loader.reset} className="px-4 py-3">← back</Button>
-              <Button onClick={handleProcess} loading={loader.isLoading} className="flex-1 py-3">Generate changelog →</Button>
+              <Button variant="outline" onClick={loader.reset} className="px-4 py-3"><FontAwesomeIcon icon={faArrowLeft} className="w-3 h-3" /> back</Button>
+              <Button onClick={handleProcess} loading={loader.isLoading} className="flex-1 py-3"><FontAwesomeIcon icon={faScroll} className="w-3 h-3" /> Generate changelog <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" /></Button>
             </div>
             {loader.error && <p className="text-red-400 text-sm">{loader.error}</p>}
           </div>
@@ -214,6 +216,8 @@ export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywor
         <RepoPreviewPanel
           preview={tab === "remote" ? preview : null}
           loading={previewLoading}
+          processing={loader.isLoading || hasProcessed}
+          exported={hasExported}
           step={loader.step}
           refs={loader.refs}
           from={loader.from}

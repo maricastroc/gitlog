@@ -34,7 +34,7 @@ const FLOW_STEPS = [
   "Export as .md, .txt or .json",
 ];
 
-type Props = { preview: RepoPreview | null; loading: boolean; step?: number; refs?: Ref[]; from?: string; to?: string };
+type Props = { preview: RepoPreview | null; loading: boolean; processing?: boolean; exported?: boolean; step?: number; refs?: Ref[]; from?: string; to?: string };
 
 function NextSteps({ doneUntil }: { doneUntil: number }) {
   return (
@@ -126,7 +126,7 @@ function RepoCard({ preview, refs }: { preview: RepoPreview; refs: Ref[] }) {
   );
 }
 
-function RangeSummary({ preview, refs, from, to }: { preview: RepoPreview; refs: Ref[]; from: string; to: string }) {
+function RangeSummary({ preview, refs, from, to, processing, exported }: { preview: RepoPreview; refs: Ref[]; from: string; to: string; processing?: boolean; exported?: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       <RepoCard preview={preview} refs={refs} />
@@ -142,12 +142,12 @@ function RangeSummary({ preview, refs, from, to }: { preview: RepoPreview; refs:
         </div>
       </div>
 
-      <NextSteps doneUntil={2} />
+      <NextSteps doneUntil={exported ? 5 : processing ? 4 : 2} />
     </div>
   );
 }
 
-export default function RepoPreviewPanel({ preview, loading, step = 0, refs = [], from = "", to = "HEAD" }: Props) {
+export default function RepoPreviewPanel({ preview, loading, processing = false, exported = false, step = 0, refs = [], from = "", to = "HEAD" }: Props) {
   if (loading) {
     return (
       <div className="rounded-xl border border-line bg-panel-2 p-5 flex items-center gap-3 text-text-dim text-sm font-mono">
@@ -158,7 +158,7 @@ export default function RepoPreviewPanel({ preview, loading, step = 0, refs = []
   }
 
   if (preview && step === 1) {
-    return <RangeSummary preview={preview} refs={refs} from={from} to={to} />;
+    return <RangeSummary preview={preview} refs={refs} from={from} to={to} processing={processing} exported={exported} />;
   }
 
   if (preview) {

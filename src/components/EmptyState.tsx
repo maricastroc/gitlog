@@ -1,5 +1,7 @@
 import Button from "@/components/Button";
 import { Text } from "@/components/Text";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
 export function EmptyState({ onSelect }: { onSelect: () => void }) {
   return (
@@ -9,7 +11,7 @@ export function EmptyState({ onSelect }: { onSelect: () => void }) {
         <Text variant="md">No repository selected</Text>
         <Text variant="sm" className="max-w-xs">Point to a GitHub or local repository to view the commit history.</Text>
       </div>
-      <Button onClick={onSelect} className="px-5 py-2.5">→ Select repository</Button>
+      <Button onClick={onSelect} className="px-5 py-2.5"><FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" /> Select repository</Button>
     </div>
   );
 }

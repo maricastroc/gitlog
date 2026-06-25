@@ -45,6 +45,8 @@ export default function DashboardClient() {
   
   const { recents, add: addRecent } = useRecentRepos();
 
+  const [hasExported, setHasExported] = useState(false);
+
   useEffect(() => {
     if (autoLoaded.current || !router.isReady) return;
     const { repo, from, to, view: viewParam } = router.query as Record<string, string>;
@@ -139,12 +141,12 @@ export default function DashboardClient() {
         {showWelcome && <WelcomeScreen onStart={() => setWelcomed(true)} />}
 
         <div className={showWelcome || view !== "select" ? "hidden" : ""}>
-          <SelectRepo onLoaded={handleRepoLoaded} onQuickLoad={handleQuickLoad} recents={recents} keywords={settings.keywords} />
+          <SelectRepo onLoaded={handleRepoLoaded} onQuickLoad={handleQuickLoad} recents={recents} keywords={settings.keywords} hasExported={hasExported} />
         </div>
 
         {view === "overview"  && repoInfo && <Overview commits={commits} repoInfo={repoInfo} refs={refs} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}
         {view === "commits"   && repoInfo && <CommitsView commits={commits} onCategoryChange={handleCategoryChange} />}
-        {view === "changelog" && repoInfo && <ChangelogView commits={commits} repoInfo={repoInfo} />}
+        {view === "changelog" && repoInfo && <ChangelogView commits={commits} repoInfo={repoInfo} onExport={() => setHasExported(true)} />}
         {view === "authors"   && repoInfo && <AuthorView commits={commits} />}
         {view === "settings"  && <SettingsView settings={settings} setSettings={setSettings} />}
         {noRepo && <EmptyState onSelect={() => handleSetView("select")} />}

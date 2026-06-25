@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
 const ANIMATION_COMMITS = [
   { type: "feat",     msg: "add GitHub OAuth integration" },
@@ -116,7 +118,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
       <div className="flex flex-col items-center gap-2 w-full">
         <button onClick={onStart}
           className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-[13px] font-mono bg-add-dim text-add border border-add hover:brightness-110 transition-all cursor-pointer">
-          Get started →
+          Get started <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
         </button>
         <p className="text-text-dim/40 text-[10px] font-mono">No account required. Supports GitHub &amp; local repos.</p>
       </div>
