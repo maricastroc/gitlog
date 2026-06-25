@@ -1,7 +1,9 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar, faCodeFork, faLock, faCircleCheck, faCircle, faTag, faArrowDown } from "@fortawesome/free-solid-svg-icons";
+import { faStar, faCodeFork, faLock, faCircleCheck, faCircle, faTag, faArrowDown, faExclamationCircle, faEye, faCode, faClock, faBoxOpen } from "@fortawesome/free-solid-svg-icons";
+import { formatDistanceToNow } from "date-fns";
+import { enUS } from "date-fns/locale";
 import Spinner from "@/components/Spinner";
 import type { Ref } from "@/types";
 
@@ -11,7 +13,12 @@ export type RepoPreview = {
   description: string | null;
   stargazers_count: number;
   forks_count: number;
+  open_issues_count: number;
+  subscribers_count: number;
+  language: string | null;
+  pushed_at: string | null;
   private: boolean;
+  _releases?: number;
 };
 
 function formatCount(n: number) {
@@ -32,7 +39,7 @@ type Props = { preview: RepoPreview | null; loading: boolean; step?: number; ref
 function NextSteps({ doneUntil }: { doneUntil: number }) {
   return (
     <div className="flex flex-col gap-1 mt-5">
-      <p className="text-text-dim text-[10px] uppercase tracking-widest mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+      <p className="font-display text-text-dim text-[10px] uppercase tracking-widest mb-2">
         Next steps
       </p>
       {FLOW_STEPS.map((label, i) => {
@@ -56,6 +63,23 @@ function NextSteps({ doneUntil }: { doneUntil: number }) {
 function RepoCard({ preview, refs }: { preview: RepoPreview; refs: Ref[] }) {
   const tags = refs.filter((r) => r.type === "tag");
   const lastRelease = tags[0]?.name ?? null;
+  const pushedAgo = preview.pushed_at
+    ? formatDistanceToNow(new Date(preview.pushed_at), { addSuffix: true, locale: enUS })
+    : null;
+
+  const stats = [
+    { icon: faStar,              color: "text-fix",   value: formatCount(preview.stargazers_count), label: "stars" },
+    { icon: faCodeFork,          color: "text-chore", value: formatCount(preview.forks_count),      label: "forks" },
+    { icon: faEye,               color: "text-docs",  value: formatCount(preview.subscribers_count), label: "watchers" },
+    { icon: faExclamationCircle, color: "text-style", value: formatCount(preview.open_issues_count), label: "issues" },
+  ];
+
+  const meta = [
+    preview.language  && { icon: faCode,    label: preview.language },
+    pushedAgo         && { icon: faClock,   label: `Last push ${pushedAgo}` },
+    preview._releases && { icon: faBoxOpen, label: `${preview._releases} release${preview._releases !== 1 ? "s" : ""}` },
+    lastRelease       && { icon: faTag,     label: `Latest: ${lastRelease}` },
+  ].filter(Boolean) as { icon: typeof faCode; label: string }[];
 
   return (
     <div className="rounded-xl border border-line bg-panel-2 p-5 flex flex-col gap-4">
@@ -73,29 +97,29 @@ function RepoCard({ preview, refs }: { preview: RepoPreview; refs: Ref[] }) {
           </span>
         )}
       </div>
+
       {preview.description && (
-        <p className="text-text-dim text-[13px] leading-relaxed border-t border-line pt-3">{preview.description}</p>
+        <p className="text-text-dim text-[12px] leading-relaxed">{preview.description}</p>
       )}
-      <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
-        <span className="text-[12px] text-text-dim font-mono flex items-center gap-1.5">
-          <FontAwesomeIcon icon={faStar} className="w-3 h-3 text-fix" />
-          <span className="text-text">{formatCount(preview.stargazers_count)}</span> stars
-        </span>
-        <span className="text-[12px] text-text-dim font-mono flex items-center gap-1.5">
-          <FontAwesomeIcon icon={faCodeFork} className="w-3 h-3 text-chore" />
-          <span className="text-text">{formatCount(preview.forks_count)}</span> forks
-        </span>
-        {tags.length > 0 && (
-          <span className="text-[12px] text-text-dim font-mono flex items-center gap-1.5">
-            <FontAwesomeIcon icon={faTag} className="w-3 h-3 text-docs" />
-            <span className="text-text">{tags.length}</span> tags
-          </span>
-        )}
+
+      <div className="grid grid-cols-2 gap-2">
+        {stats.map((s) => (
+          <div key={s.label} className="flex items-center gap-2 bg-panel rounded-lg px-3 py-2">
+            <FontAwesomeIcon icon={s.icon} className={`w-3 h-3 shrink-0 ${s.color}`} />
+            <span className="text-text text-[12px] font-mono font-medium">{s.value}</span>
+            <span className="text-text-dim text-[11px] font-mono">{s.label}</span>
+          </div>
+        ))}
       </div>
-      {lastRelease && (
-        <div className="border-t border-line pt-3 flex items-center gap-2">
-          <span className="text-text-dim text-[11px] font-mono">last release</span>
-          <span className="text-add text-[11px] font-mono bg-add-dim px-2 py-0.5 rounded">{lastRelease}</span>
+
+      {meta.length > 0 && (
+        <div className="border-t border-line pt-3 flex flex-col gap-1.5">
+          {meta.map((m) => (
+            <div key={m.label} className="flex items-center gap-2 text-[11px] font-mono text-text-dim">
+              <FontAwesomeIcon icon={m.icon} className="w-2.5 h-2.5 shrink-0 text-text-dim/40" />
+              {m.label}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -108,7 +132,7 @@ function RangeSummary({ preview, refs, from, to }: { preview: RepoPreview; refs:
       <RepoCard preview={preview} refs={refs} />
 
       <div className="rounded-xl border border-line bg-panel-2 p-5 flex flex-col gap-3">
-        <p className="text-text-dim text-[10px] uppercase tracking-widest" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <p className="font-display text-text-dim text-[10px] uppercase tracking-widest">
           Range
         </p>
         <div className="flex flex-col gap-1.5">
@@ -148,7 +172,7 @@ export default function RepoPreviewPanel({ preview, loading, step = 0, refs = []
 
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-text-dim text-[10px] uppercase tracking-widest mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+      <p className="font-display text-text-dim text-[10px] uppercase tracking-widest mb-2">
         What happens next?
       </p>
       {FLOW_STEPS.map((label) => (

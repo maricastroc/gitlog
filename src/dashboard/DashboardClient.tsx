@@ -30,7 +30,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-8 text-center max-w-md mx-auto">
       <div>
-        <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 28, fontWeight: 700 }} className="text-text mb-2">
+        <p className="font-display text-[28px] font-bold text-text mb-2">
           Welcome to Gitlog
         </p>
         <p className="text-text-dim text-[13px] leading-relaxed">
@@ -92,13 +92,13 @@ export default function DashboardClient() {
     const [owner, repoName] = repo.split("/");
     if (!owner || !repoName) return;
     autoLoaded.current = true;
-    setWelcomed(true);
 
     const params: Record<string, string> = { type: "remote", owner, repo: repoName };
     if (from) params.since = from;
 
     api.get<{ data: Commit[] }>("/commits", { params }).then((res) => {
       const data = res.data.data ?? [];
+      setWelcomed(true);
       handleRepoLoaded(
         { type: "remote", label: `${owner}/${repoName}`, owner, repo: repoName, from: from ?? "", to: to ?? "HEAD" },
         data,

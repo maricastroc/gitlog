@@ -17,8 +17,24 @@ export function useRepoPreview(owner: string | null, repo: string | null, token:
       try {
         const headers: Record<string, string> = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
-        const res = await githubApi.get<RepoPreview>(`/repos/${owner}/${repo}`, { headers });
-        setPreview(res.data);
+
+        const [repoRes, releasesRes] = await Promise.all([
+          githubApi.get<RepoPreview>(`/repos/${owner}/${repo}`, { headers }),
+          githubApi.get(`/repos/${owner}/${repo}/releases?per_page=1`, { headers }).catch(() => null),
+        ]);
+
+        let releases: number | undefined;
+        if (releasesRes) {
+          const link = releasesRes.headers?.link as string | undefined;
+          if (link) {
+            const match = link.match(/page=(\d+)>; rel="last"/);
+            if (match) releases = parseInt(match[1], 10);
+          } else if (Array.isArray(releasesRes.data)) {
+            releases = releasesRes.data.length;
+          }
+        }
+
+        setPreview({ ...repoRes.data, _releases: releases });
       } catch {
         setPreview(null);
       } finally {
