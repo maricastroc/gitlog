@@ -57,6 +57,11 @@ export function RangeSelector({
           <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
         </Button>
       </div>
+      {from && to && from === to && (
+        <p className="text-yellow-400 text-[12px] font-mono">
+          From and To are the same ref — the result will be empty.
+        </p>
+      )}
       {error && <p className="text-red-400 text-sm">{error}</p>}
     </div>
   );

@@ -164,6 +164,9 @@ export default function ChangelogView({ commits, repoInfo, showAuthor = false, o
       </div>
 
       <div className="panel">
+        {sorted.length === 0 && (
+          <p className="text-text-dim text-sm font-mono text-center py-8">No commits to display.</p>
+        )}
         <div className="flex flex-col gap-6">
           {sorted.map((cat) => {
             const isCollapsed = collapsed.has(cat);

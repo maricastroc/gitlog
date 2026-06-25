@@ -62,7 +62,12 @@ export default function DashboardClient() {
 
     const source =
       repoInfo.type === "remote" && repoInfo.owner && repoInfo.repo
-        ? { type: "remote" as const, owner: repoInfo.owner, repo: repoInfo.repo }
+        ? {
+            type: "remote" as const,
+            owner: repoInfo.owner,
+            repo: repoInfo.repo,
+            token: repoInfo.token,
+          }
         : repoInfo.type === "local" && repoInfo.path
           ? { type: "local" as const, path: repoInfo.path }
           : null;
@@ -80,7 +85,9 @@ export default function DashboardClient() {
           setCommits(data);
           setCategoryOverrides(new Map());
         })
-        .catch(() => {});
+        .catch((err) => {
+          console.error("Failed to re-fetch commits:", err);
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.ignoreMerge, settings.ignoreBots]);

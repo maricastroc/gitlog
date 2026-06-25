@@ -33,7 +33,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
   function removeKeyword(cat: string, kw: string) {
     setDraft({
       ...draft,
-      keywords: { ...draft.keywords, [cat]: draft.keywords[cat].filter((k) => k !== kw) },
+      keywords: { ...draft.keywords, [cat]: (draft.keywords[cat] ?? []).filter((k) => k !== kw) },
     });
   }
 

@@ -76,7 +76,7 @@ export function generateJSON({ groups, sorted, grouping, range }: ExportInput): 
   const data = {
     generatedAt: new Date().toISOString(),
     grouping,
-    range: range.from ? { from: range.from, to: range.to ?? "HEAD" } : { from: "HEAD" },
+    range: { from: range.from ?? null, to: range.to ?? "HEAD" },
     categories: Object.fromEntries(
       sorted.map((cat) => [
         cat,
