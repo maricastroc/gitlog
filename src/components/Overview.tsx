@@ -7,6 +7,7 @@ import { enUS } from "date-fns/locale";
 import PageHeader from "@/components/PageHeader";
 import ReleaseDiff from "@/components/ReleaseDiff";
 import CategoryBadge from "@/components/CategoryBadge";
+import CommitActivityChart from "@/components/CommitActivityChart";
 import { catStyle } from "@/lib/categoryStyles";
 import { groupBy, lastCommitAgo, buildTimeline } from "@/lib/commitStats";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,21 +15,52 @@ import { faLink, faCheck, faScroll, faArrowRight } from "@fortawesome/free-solid
 
 type Props = { commits: Commit[]; repoInfo: RepoInfo; refs?: Ref[]; onViewAllCommits: () => void; onViewChangelog: () => void };
 
+function StatCard({ label, cat, count, commits }: { label: string; cat: string; count: number; commits: Commit[] }) {
+  const ago = lastCommitAgo(commits, cat);
+  const pct = commits.length ? Math.round((count / commits.length) * 100) : 0;
+  const style = catStyle(cat);
+  return (
+    <div className={`panel border-l-2 ${style.accent}`}>
+      <p className={`text-[40px] leading-none font-bold font-display ${style.text}`}>{count}</p>
+      <p className="text-text-dim text-[10px] tracking-widest mt-1 uppercase">{label}</p>
+      <div className="mt-3 h-1 bg-panel-2 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${style.bar}`} style={{ width: `${pct}%` }} />
+      </div>
+      {ago && <p className="text-text-dim text-[10px] font-mono mt-2 truncate">last: {ago}</p>}
+    </div>
+  );
+}
+
 export default function Overview({ commits, repoInfo, refs = [], onViewAllCommits, onViewChangelog }: Props) {
-  const authors = [...new Set(commits.map((c) => c.author))];
-
-  const dates = commits.map((c) => new Date(c.date)).sort((a, b) => a.getTime() - b.getTime());
-
-  const since = dates[0] ? format(dates[0], "d MMM yyyy", { locale: enUS }) : "—";
-
-  const until = dates.at(-1) ? format(dates.at(-1)!, "d MMM yyyy", { locale: enUS }) : "—";
-
-  const [hoveredBar, setHoveredBar] = useState<{ label: string; count: number; index: number } | null>(null);
-
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
-
   const [copied, setCopied] = useState(false);
 
+  const authors = [...new Set(commits.map((c) => c.author))];
+  const dates = commits.map((c) => new Date(c.date)).sort((a, b) => a.getTime() - b.getTime());
+  const since = dates[0] ? format(dates[0], "d MMM yyyy", { locale: enUS }) : "—";
+  const until = dates.at(-1) ? format(dates.at(-1)!, "d MMM yyyy", { locale: enUS }) : "—";
+
+  const byCat = groupBy(commits, "category");
+  const byAuthor = groupBy(commits, "author");
+  const sortedCats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const sortedAuthors = Object.entries(byAuthor).sort((a, b) => b[1] - a[1]);
+  const timeline = buildTimeline(commits);
+
+  const allRecent = [...commits].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const recent = selectedDay
+    ? allRecent.filter((c) => format(new Date(c.date), "MMM d", { locale: enUS }) === selectedDay)
+    : allRecent.slice(0, 7);
+
+  const statCards = [
+    { label: "Features",      cat: "feat",     count: byCat["feat"]     ?? 0 },
+    { label: "Bug Fixes",     cat: "fix",      count: byCat["fix"]      ?? 0 },
+    { label: "Refactors",     cat: "refactor", count: byCat["refactor"] ?? 0 },
+    { label: "Uncategorized", cat: "other",    count: byCat["other"]    ?? 0 },
+  ];
+
+  const rangeLabel = repoInfo.from
+    ? <>{repoInfo.from} <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 inline" /> {repoInfo.to ?? "HEAD"}</>
+    : <>HEAD</>;
 
   function handleShare() {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -37,42 +69,10 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
     });
   }
 
-  const byCat    = groupBy(commits, "category");
-
-  const byAuthor = groupBy(commits, "author");
-
-  const sortedCats    = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-
-  const sortedAuthors = Object.entries(byAuthor).sort((a, b) => b[1] - a[1]);
-
-  const allRecent = [...commits].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  
-  const recent = selectedDay
-    ? allRecent.filter((c) => format(new Date(c.date), "MMM d", { locale: enUS }) === selectedDay)
-    : allRecent.slice(0, 7);
-
-  const timeline = buildTimeline(commits);
-
-  const maxBar = Math.max(...timeline.map((t) => t.count), 1);
-
-  const statCards = [
-    { label: "Features",      cat: "feat",  count: byCat["feat"]  ?? 0 },
-    { label: "Bug Fixes",     cat: "fix",   count: byCat["fix"]   ?? 0 },
-    { label: "Refactors",     cat: "refactor", count: byCat["refactor"] ?? 0 },
-    { label: "Uncategorized", cat: "other", count: byCat["other"] ?? 0 },
-  ];
-
-  const rangeLabel = repoInfo.from
-    ? <>{repoInfo.from} <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 inline" /> {repoInfo.to ?? "HEAD"}</>
-    : <>HEAD</>;
-
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
-        <PageHeader
-          title="Period overview"
-          description={`${since} — ${until}`}
-        />
+        <PageHeader title="Period overview" description={`${since} — ${until}`} />
         <div className="flex flex-col items-end gap-2 sm:mt-1 shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-text-dim text-[11px] font-mono">{rangeLabel}</span>
@@ -98,23 +98,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-        {statCards.map((s) => {
-          const ago = lastCommitAgo(commits, s.cat);
-          const pct = commits.length ? Math.round((s.count / commits.length) * 100) : 0;
-          const style = catStyle(s.cat);
-          return (
-            <div key={s.label} className={`panel border-l-2 ${style.accent}`}>
-              <p className={`text-[40px] leading-none font-bold font-display ${style.text}`}>{s.count}</p>
-              <p className="text-text-dim text-[10px] tracking-widest mt-1 uppercase">{s.label}</p>
-              <div className="mt-3 h-1 bg-panel-2 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${style.bar}`} style={{ width: `${pct}%` }} />
-              </div>
-              {ago && (
-                <p className="text-text-dim text-[10px] font-mono mt-2 truncate">last: {ago}</p>
-              )}
-            </div>
-          );
-        })}
+        {statCards.map((s) => <StatCard key={s.label} {...s} commits={commits} />)}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
@@ -146,44 +130,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
           </div>
 
           {timeline.length > 1 && (
-            <div className="panel">
-              <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">Commit activity</p>
-              <div className="relative flex items-end gap-0.5" style={{ height: 96 }}>
-                {hoveredBar && (
-                  <div
-                    className="absolute bottom-full mb-2 px-2 py-1 bg-panel-2 border border-line rounded text-[11px] font-mono text-text whitespace-nowrap pointer-events-none z-10"
-                    style={{ left: `${(hoveredBar.index / timeline.length) * 100}%`, transform: "translateX(-50%)" }}
-                  >
-                    {hoveredBar.label} · {hoveredBar.count} commit{hoveredBar.count !== 1 ? "s" : ""}
-                  </div>
-                )}
-                {timeline.map((t, i) => {
-                  const isSelected = selectedDay === t.label;
-                  return (
-                    <div
-                      key={t.label}
-                      className="flex-1 h-full flex flex-col justify-end cursor-pointer"
-                      onMouseEnter={() => setHoveredBar({ ...t, index: i })}
-                      onMouseLeave={() => setHoveredBar(null)}
-                      onClick={() => setSelectedDay(isSelected ? null : t.label)}
-                    >
-                      <div
-                        className={`w-full rounded-sm transition-all ${
-                          isSelected ? "bg-add opacity-100 ring-1 ring-add" :
-                          hoveredBar?.label === t.label ? "bg-add opacity-100" :
-                          "bg-add opacity-50"
-                        }`}
-                        style={{ height: `${Math.max((t.count / maxBar) * 100, 8)}%` }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex justify-between mt-1.5">
-                <span className="text-text-dim text-[10px] font-mono">{timeline[0]?.label}</span>
-                <span className="text-text-dim text-[10px] font-mono">{timeline.at(-1)?.label}</span>
-              </div>
-            </div>
+            <CommitActivityChart timeline={timeline} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
           )}
         </div>
 

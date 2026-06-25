@@ -3,44 +3,27 @@
 import type { Commit, RepoInfo } from "@/types";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/router";
-import { format } from "date-fns";
-import { enUS } from "date-fns/locale";
-import * as Popover from "@radix-ui/react-popover";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faCheck, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
-
+import AuthorFilter from "@/components/AuthorFilter";
 import { catStyle, CAT_ORDER } from "@/lib/categoryStyles";
+import { groupByPeriod, generateMarkdown, generatePlainText, generateJSON, downloadFile } from "@/lib/changelogExport";
 
 type Grouping = "none" | "month" | "week";
 
 type Props = { commits: Commit[]; repoInfo: RepoInfo; onExport?: () => void };
 
-function periodKey(date: string, grouping: Grouping): string {
-  const d = new Date(date);
-  if (grouping === "month") return format(d, "MMMM yyyy", { locale: enUS });
-  if (grouping === "week")  return `Week of ${format(d, "MMM d, yyyy", { locale: enUS })}`;
-  return "";
-}
-
-function groupByPeriod(commits: Commit[], grouping: Grouping): { period: string; commits: Commit[] }[] {
-  if (grouping === "none") return [{ period: "", commits }];
-  const map = new Map<string, Commit[]>();
-  for (const c of commits) {
-    const key = periodKey(c.date, grouping);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(c);
-  }
-  return [...map.entries()]
-    .sort((a, b) => new Date(b[1][0].date).getTime() - new Date(a[1][0].date).getTime())
-    .map(([period, commits]) => ({ period, commits }));
-}
+const GROUPING_OPTIONS: { value: Grouping; label: string }[] = [
+  { value: "none",  label: "No grouping" },
+  { value: "month", label: "By month" },
+  { value: "week",  label: "By week" },
+];
 
 export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const [authorOpen, setAuthorOpen] = useState(false);
 
   const rawGrouping = router.query.grouping as string | undefined;
   const grouping: Grouping = rawGrouping === "month" || rawGrouping === "week" ? rawGrouping : "none";
@@ -65,7 +48,6 @@ export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
   }
 
   const filtered = commits.filter((c) => selectedAuthors.has(c.author));
-
   const groups = filtered.reduce<Record<string, Commit[]>>((acc, c) => {
     if (!acc[c.category]) acc[c.category] = [];
     acc[c.category].push(c);
@@ -73,90 +55,24 @@ export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
   }, {});
   const sorted = CAT_ORDER.filter((k) => groups[k]);
 
-  const authorLabel = selectedAuthors.size === allAuthors.length
-    ? "All authors"
-    : selectedAuthors.size === 0
-    ? "No authors"
-    : `${selectedAuthors.size} of ${allAuthors.length} authors`;
-
-  function generateMarkdown() {
-    const lines = ["# Changelog\n"];
-    sorted.forEach((cat) => {
-      lines.push(`## ${catStyle(cat).label}\n`);
-      const periods = groupByPeriod(groups[cat], grouping);
-      periods.forEach(({ period, commits: cs }) => {
-        if (period) lines.push(`### ${period}\n`);
-        cs.forEach((c) => lines.push(`- ${c.message} (\`${c.sha}\`)`));
-        lines.push("");
-      });
-    });
-    return lines.join("\n");
-  }
-
-  function generatePlainText() {
-    const lines = ["CHANGELOG", "=========", ""];
-    sorted.forEach((cat) => {
-      lines.push(`${catStyle(cat).label}`);
-      lines.push("-".repeat((catStyle(cat).label).length));
-      const periods = groupByPeriod(groups[cat], grouping);
-      periods.forEach(({ period, commits: cs }) => {
-        if (period) { lines.push(""); lines.push(`  [${period}]`); }
-        cs.forEach((c) => lines.push(`  * ${c.message} (${c.sha})`));
-      });
-      lines.push("");
-    });
-    return lines.join("\n");
-  }
-
-  function generateJSON() {
-    const data = {
-      generatedAt: new Date().toISOString(),
-      grouping,
-      range: repoInfo.from ? { from: repoInfo.from, to: repoInfo.to ?? "HEAD" } : { from: "HEAD" },
-      categories: Object.fromEntries(
-        sorted.map((cat) => {
-          const periods = groupByPeriod(groups[cat], grouping);
-          return [cat, {
-            label: catStyle(cat).label,
-            periods: periods.map(({ period, commits: cs }) => ({
-              ...(period && { period }),
-              commits: cs.map((c) => ({ sha: c.sha, message: c.message, author: c.author, date: c.date })),
-            })),
-          }];
-        })
-      ),
-    };
-    return JSON.stringify(data, null, 2);
-  }
+  const exportInput = { groups, sorted, grouping, range: { from: repoInfo.from, to: repoInfo.to } };
 
   function handleCopy() {
-    navigator.clipboard.writeText(generateMarkdown());
-    setCopied(true); setTimeout(() => setCopied(false), 2000);
-  }
-
-  function download(content: string, filename: string, mime: string) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
-    a.download = filename;
-    a.click();
+    navigator.clipboard.writeText(generateMarkdown(exportInput));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   function handleExport(fmt: "md" | "txt" | "json") {
     onExport?.();
-    if (fmt === "md")   return download(generateMarkdown(),  "CHANGELOG.md",   "text/markdown");
-    if (fmt === "txt")  return download(generatePlainText(), "CHANGELOG.txt",  "text/plain");
-    if (fmt === "json") return download(generateJSON(),      "changelog.json", "application/json");
+    if (fmt === "md")   return downloadFile(generateMarkdown(exportInput),  "CHANGELOG.md",   "text/markdown");
+    if (fmt === "txt")  return downloadFile(generatePlainText(exportInput), "CHANGELOG.txt",  "text/plain");
+    if (fmt === "json") return downloadFile(generateJSON(exportInput),      "changelog.json", "application/json");
   }
 
   const intervalLabel = repoInfo.from
     ? <>{repoInfo.from} <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5 inline" /> {repoInfo.to ?? "HEAD"}</>
     : <>HEAD</>;
-
-  const GROUPING_OPTIONS: { value: Grouping; label: string }[] = [
-    { value: "none",  label: "No grouping" },
-    { value: "month", label: "By month" },
-    { value: "week",  label: "By week" },
-  ];
 
   return (
     <div className="w-full">
@@ -187,71 +103,39 @@ export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
           ))}
         </div>
 
-        <Popover.Root open={authorOpen} onOpenChange={setAuthorOpen}>
-          <Popover.Trigger className="flex items-center gap-2 px-3 py-[9px] rounded-lg bg-panel-2 border border-line text-[11px] font-mono text-text-dim hover:text-text hover:border-text-dim transition-colors cursor-pointer outline-none">
-            {authorLabel}
-            <FontAwesomeIcon icon={faChevronDown} className={`w-2 h-2 transition-transform ${authorOpen ? "rotate-180" : ""}`} />
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content sideOffset={6} align="start" className="z-50 w-64 bg-panel-2 border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden outline-none">
-              <div className="p-1.5 border-b border-line">
-                <button
-                  onClick={toggleAll}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-[11px] font-mono text-text-dim hover:text-text hover:bg-panel transition-colors cursor-pointer text-left"
-                >
-                  <span className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${selectedAuthors.size === allAuthors.length ? "bg-add border-add" : "border-line"}`}>
-                    {selectedAuthors.size === allAuthors.length && <FontAwesomeIcon icon={faCheck} className="w-2 h-2 text-bg" />}
-                  </span>
-                  Select all
-                </button>
-              </div>
-              <div className="p-1 max-h-60 overflow-y-auto">
-                {allAuthors.map((author) => (
-                  <button
-                    key={author}
-                    onClick={() => toggleAuthor(author)}
-                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-[11px] font-mono text-text-dim hover:text-text hover:bg-panel transition-colors cursor-pointer text-left"
-                  >
-                    <span className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${selectedAuthors.has(author) ? "bg-add border-add" : "border-line"}`}>
-                      {selectedAuthors.has(author) && <FontAwesomeIcon icon={faCheck} className="w-2 h-2 text-bg" />}
-                    </span>
-                    <span className="truncate">{author}</span>
-                  </button>
-                ))}
-              </div>
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
+        <AuthorFilter
+          allAuthors={allAuthors}
+          selectedAuthors={selectedAuthors}
+          onToggle={toggleAuthor}
+          onToggleAll={toggleAll}
+        />
       </div>
 
       <div className="panel">
         <div className="flex flex-col gap-6">
-          {sorted.map((cat) => {
-            const periods = groupByPeriod(groups[cat], grouping);
-            return (
-              <div key={cat}>
-                <p className="text-text-dim text-[10px] uppercase tracking-widest mb-2.5">{catStyle(cat).label}</p>
-                <div className="flex flex-col gap-4">
-                  {periods.map(({ period, commits: cs }) => (
-                    <div key={period || "all"}>
-                      {period && (
-                        <p className="text-text-dim text-[10px] font-mono mb-2 pl-3.5 border-l border-line">{period}</p>
-                      )}
-                      <div className="flex flex-col gap-1.5">
-                        {cs.map((c) => (
-                          <div key={c.sha} className={`flex items-baseline gap-2.5 font-mono text-[13px] ${catStyle(cat).text}`}>
-                            <span className="shrink-0 w-2.5">{catStyle(cat).prefix}</span>
-                            <span className="flex-1">{c.message}</span>
-                            <span className="text-text-dim text-[11px] shrink-0">{c.sha}</span>
-                          </div>
-                        ))}
-                      </div>
+          {sorted.map((cat) => (
+            <div key={cat}>
+              <p className="text-text-dim text-[10px] uppercase tracking-widest mb-2.5">{catStyle(cat).label}</p>
+              <div className="flex flex-col gap-4">
+                {groupByPeriod(groups[cat], grouping).map(({ period, commits: cs }) => (
+                  <div key={period || "all"}>
+                    {period && (
+                      <p className="text-text-dim text-[10px] font-mono mb-2 pl-3.5 border-l border-line">{period}</p>
+                    )}
+                    <div className="flex flex-col gap-1.5">
+                      {cs.map((c) => (
+                        <div key={c.sha} className={`flex items-baseline gap-2.5 font-mono text-[13px] ${catStyle(cat).text}`}>
+                          <span className="shrink-0 w-2.5">{catStyle(cat).prefix}</span>
+                          <span className="flex-1">{c.message}</span>
+                          <span className="text-text-dim text-[11px] shrink-0">{c.sha}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
