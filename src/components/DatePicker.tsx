@@ -18,7 +18,7 @@ export default function DatePicker({ value, onChange, placeholder = "dd/mm/aaaa"
   const [open, setOpen] = useState(false);
 
   const selected = value ? new Date(value + "T12:00:00") : undefined;
-  
+
   const label = selected ? format(selected, "d MMM yyyy", { locale: ptBR }) : null;
 
   return (
@@ -30,7 +30,10 @@ export default function DatePicker({ value, onChange, placeholder = "dd/mm/aaaa"
             {value && (
               <span
                 role="button"
-                onClick={(e) => { e.stopPropagation(); onChange(""); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange("");
+                }}
                 className="text-text-dim hover:text-text transition-colors"
               >
                 <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5" />
@@ -56,24 +59,25 @@ export default function DatePicker({ value, onChange, placeholder = "dd/mm/aaaa"
             }}
             locale={ptBR}
             classNames={{
-              root:        "text-[12px] font-mono",
-              month_grid:  "w-full border-collapse",
-              months:      "relative",
-              month:       "gap-y-4",
-              nav:         "absolute inset-x-0 top-0 flex justify-between",
+              root: "text-[12px] font-mono",
+              month_grid: "w-full border-collapse",
+              months: "relative",
+              month: "gap-y-4",
+              nav: "absolute inset-x-0 top-0 flex justify-between",
               button_previous: "p-1 text-text-dim hover:text-text transition-colors cursor-pointer",
-              button_next:     "p-1 text-text-dim hover:text-text transition-colors cursor-pointer",
+              button_next: "p-1 text-text-dim hover:text-text transition-colors cursor-pointer",
               month_caption: "text-center text-text text-[13px] mb-3 font-mono",
               caption_label: "font-semibold",
-              weekdays:    "mb-1",
-              weekday:     "text-text-dim text-[10px] text-center w-8 pb-1",
-              week:        "",
-              day:         "text-center p-0",
-              day_button:  "w-8 h-8 rounded-md text-text-dim hover:bg-panel-2 hover:text-text transition-colors cursor-pointer",
-              selected:    "[&>button]:bg-add-dim [&>button]:text-add [&>button]:font-semibold",
-              today:       "[&>button]:border [&>button]:border-line",
-              outside:     "[&>button]:opacity-30",
-              disabled:    "[&>button]:opacity-20 [&>button]:cursor-not-allowed",
+              weekdays: "mb-1",
+              weekday: "text-text-dim text-[10px] text-center w-8 pb-1",
+              week: "",
+              day: "text-center p-0",
+              day_button:
+                "w-8 h-8 rounded-md text-text-dim hover:bg-panel-2 hover:text-text transition-colors cursor-pointer",
+              selected: "[&>button]:bg-add-dim [&>button]:text-add [&>button]:font-semibold",
+              today: "[&>button]:border [&>button]:border-line",
+              outside: "[&>button]:opacity-30",
+              disabled: "[&>button]:opacity-20 [&>button]:cursor-not-allowed",
             }}
           />
         </Popover.Content>

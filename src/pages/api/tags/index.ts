@@ -7,22 +7,32 @@ const GITHUB_NAME_RE = /^[a-zA-Z0-9_.-]{1,100}$/;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).end();
 
-  const type  = req.query.type as string | undefined;
-  const path  = req.query.path as string | undefined;
+  const type = req.query.type as string | undefined;
+  const path = req.query.path as string | undefined;
   const owner = req.query.owner as string | undefined;
-  const repo  = req.query.repo as string | undefined;
+  const repo = req.query.repo as string | undefined;
   const token = req.query.token as string | undefined;
 
   if (type === "local") {
     if (!path) return res.status(400).json({ error: "path is required" });
-    if (path.includes('"') || path.includes('\0')) {
+    if (path.includes('"') || path.includes("\0")) {
       return res.status(400).json({ error: "Invalid path" });
     }
     try {
-      const rawTags     = execSync(`git -C "${path}" tag --sort=-creatordate`, { encoding: "utf8" });
-      const rawBranches = execSync(`git -C "${path}" branch --format="%(refname:short)"`, { encoding: "utf8" });
-      const tags: Ref[]     = rawTags.trim().split("\n").filter(Boolean).map((n) => ({ name: n, type: "tag" }));
-      const branches: Ref[] = rawBranches.trim().split("\n").filter(Boolean).map((n) => ({ name: n, type: "branch" }));
+      const rawTags = execSync(`git -C "${path}" tag --sort=-creatordate`, { encoding: "utf8" });
+      const rawBranches = execSync(`git -C "${path}" branch --format="%(refname:short)"`, {
+        encoding: "utf8",
+      });
+      const tags: Ref[] = rawTags
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .map((n) => ({ name: n, type: "tag" }));
+      const branches: Ref[] = rawBranches
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .map((n) => ({ name: n, type: "branch" }));
       return res.json({ data: [...branches, ...tags] });
     } catch {
       return res.status(500).json({ error: "Failed to read refs from local repository" });
@@ -43,14 +53,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   ]);
 
   if (!tagsRes.ok) {
-    const err = await tagsRes.json() as { message?: string };
+    const err = (await tagsRes.json()) as { message?: string };
     return res.status(tagsRes.status).json({ error: err.message ?? "GitHub API error" });
   }
 
-  const tagsData     = await tagsRes.json() as { name: string }[];
-  const branchesData = branchesRes.ok ? (await branchesRes.json() as { name: string }[]) : [];
+  const tagsData = (await tagsRes.json()) as { name: string }[];
+  const branchesData = branchesRes.ok ? ((await branchesRes.json()) as { name: string }[]) : [];
 
-  const tags: Ref[]     = tagsData.map((t) => ({ name: t.name, type: "tag" }));
+  const tags: Ref[] = tagsData.map((t) => ({ name: t.name, type: "tag" }));
   const branches: Ref[] = branchesData.map((b) => ({ name: b.name, type: "branch" }));
 
   return res.json({ data: [...branches, ...tags] });

@@ -13,17 +13,26 @@ type Props = {
 
 function Checkbox({ checked }: { checked: boolean }) {
   return (
-    <span className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${checked ? "bg-add border-add" : "border-line"}`}>
+    <span
+      className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${checked ? "bg-add border-add" : "border-line"}`}
+    >
       {checked && <FontAwesomeIcon icon={faCheck} className="w-2 h-2 text-bg" />}
     </span>
   );
 }
 
-export default function AuthorFilter({ allAuthors, selectedAuthors, onToggle, onToggleAll }: Props) {
+export default function AuthorFilter({
+  allAuthors,
+  selectedAuthors,
+  onToggle,
+  onToggleAll,
+}: Props) {
   const label =
-    selectedAuthors.size === allAuthors.length ? "All authors"
-    : selectedAuthors.size === 0 ? "No authors"
-    : `${selectedAuthors.size} of ${allAuthors.length} authors`;
+    selectedAuthors.size === allAuthors.length
+      ? "All authors"
+      : selectedAuthors.size === 0
+        ? "No authors"
+        : `${selectedAuthors.size} of ${allAuthors.length} authors`;
 
   const allSelected = selectedAuthors.size === allAuthors.length;
 
@@ -31,10 +40,17 @@ export default function AuthorFilter({ allAuthors, selectedAuthors, onToggle, on
     <Popover.Root>
       <Popover.Trigger className="flex items-center gap-2 px-3 py-[9px] rounded-lg bg-panel-2 border border-line text-[11px] font-mono text-text-dim hover:text-text hover:border-text-dim transition-colors cursor-pointer outline-none">
         {label}
-        <FontAwesomeIcon icon={faChevronDown} className="w-2 h-2 transition-transform data-[state=open]:rotate-180" />
+        <FontAwesomeIcon
+          icon={faChevronDown}
+          className="w-2 h-2 transition-transform data-[state=open]:rotate-180"
+        />
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content sideOffset={6} align="start" className="z-50 w-64 bg-panel-2 border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden outline-none">
+        <Popover.Content
+          sideOffset={6}
+          align="start"
+          className="z-50 w-64 bg-panel-2 border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden outline-none"
+        >
           <div className="p-1.5 border-b border-line">
             <button
               onClick={onToggleAll}

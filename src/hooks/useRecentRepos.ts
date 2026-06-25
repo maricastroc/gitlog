@@ -24,9 +24,13 @@ export function useRecentRepos() {
 
   function add(repo: RecentRepo) {
     setRecents((prev) => {
-      const deduped = prev.filter((r) => !(r.type === repo.type && (r.url ?? r.path) === (repo.url ?? repo.path)));
+      const deduped = prev.filter(
+        (r) => !(r.type === repo.type && (r.url ?? r.path) === (repo.url ?? repo.path)),
+      );
       const next = [repo, ...deduped].slice(0, MAX);
-      try { localStorage.setItem(KEY, JSON.stringify(next)); } catch {}
+      try {
+        localStorage.setItem(KEY, JSON.stringify(next));
+      } catch {}
       return next;
     });
   }

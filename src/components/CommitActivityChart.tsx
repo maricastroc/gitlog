@@ -9,7 +9,11 @@ type Props = {
 };
 
 export default function CommitActivityChart({ timeline, selectedDay, onSelectDay }: Props) {
-  const [hoveredBar, setHoveredBar] = useState<{ label: string; count: number; index: number } | null>(null);
+  const [hoveredBar, setHoveredBar] = useState<{
+    label: string;
+    count: number;
+    index: number;
+  } | null>(null);
   const maxBar = Math.max(...timeline.map((t) => t.count), 1);
 
   return (
@@ -19,7 +23,10 @@ export default function CommitActivityChart({ timeline, selectedDay, onSelectDay
         {hoveredBar && (
           <div
             className="absolute bottom-full mb-2 px-2 py-1 bg-panel-2 border border-line rounded text-[11px] font-mono text-text whitespace-nowrap pointer-events-none z-10"
-            style={{ left: `${(hoveredBar.index / timeline.length) * 100}%`, transform: "translateX(-50%)" }}
+            style={{
+              left: `${(hoveredBar.index / timeline.length) * 100}%`,
+              transform: "translateX(-50%)",
+            }}
           >
             {hoveredBar.label} · {hoveredBar.count} commit{hoveredBar.count !== 1 ? "s" : ""}
           </div>
@@ -36,9 +43,11 @@ export default function CommitActivityChart({ timeline, selectedDay, onSelectDay
             >
               <div
                 className={`w-full rounded-sm transition-all ${
-                  isSelected ? "bg-add opacity-100 ring-1 ring-add" :
-                  hoveredBar?.label === t.label ? "bg-add opacity-100" :
-                  "bg-add opacity-50"
+                  isSelected
+                    ? "bg-add opacity-100 ring-1 ring-add"
+                    : hoveredBar?.label === t.label
+                      ? "bg-add opacity-100"
+                      : "bg-add opacity-50"
                 }`}
                 style={{ height: `${Math.max((t.count / maxBar) * 100, 8)}%` }}
               />

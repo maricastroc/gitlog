@@ -10,11 +10,18 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const VARIANTS = {
   primary: "bg-add-dim text-add border border-add hover:brightness-110",
-  ghost:   "bg-transparent text-text-dim border border-line hover:text-text",
+  ghost: "bg-transparent text-text-dim border border-line hover:text-text",
   outline: "bg-transparent text-text-dim border border-line hover:text-text hover:border-text-dim",
 };
 
-export default function Button({ variant = "primary", loading, children, disabled, className = "", ...props }: Props) {
+export default function Button({
+  variant = "primary",
+  loading,
+  children,
+  disabled,
+  className = "",
+  ...props
+}: Props) {
   return (
     <button
       {...props}

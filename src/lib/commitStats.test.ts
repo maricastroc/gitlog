@@ -80,7 +80,7 @@ describe("buildTimeline", () => {
 
   it("returns at most 20 entries", () => {
     const commits = Array.from({ length: 25 }, (_, i) =>
-      makeCommit({ date: new Date(2024, 0, i + 1).toISOString() })
+      makeCommit({ date: new Date(2024, 0, i + 1).toISOString() }),
     );
     expect(buildTimeline(commits).length).toBeLessThanOrEqual(20);
   });

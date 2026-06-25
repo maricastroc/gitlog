@@ -8,11 +8,14 @@ type Grouping = "none" | "month" | "week";
 function periodKey(date: string, grouping: Grouping): string {
   const d = new Date(date);
   if (grouping === "month") return format(d, "MMMM yyyy", { locale: enUS });
-  if (grouping === "week")  return `Week of ${format(d, "MMM d, yyyy", { locale: enUS })}`;
+  if (grouping === "week") return `Week of ${format(d, "MMM d, yyyy", { locale: enUS })}`;
   return "";
 }
 
-export function groupByPeriod(commits: Commit[], grouping: Grouping): { period: string; commits: Commit[] }[] {
+export function groupByPeriod(
+  commits: Commit[],
+  grouping: Grouping,
+): { period: string; commits: Commit[] }[] {
   if (grouping === "none") return [{ period: "", commits }];
   const map = new Map<string, Commit[]>();
   for (const c of commits) {
@@ -51,7 +54,10 @@ export function generatePlainText({ groups, sorted, grouping }: ExportInput): st
     const label = catStyle(cat).label;
     lines.push(label, "-".repeat(label.length));
     groupByPeriod(groups[cat], grouping).forEach(({ period, commits }) => {
-      if (period) { lines.push(""); lines.push(`  [${period}]`); }
+      if (period) {
+        lines.push("");
+        lines.push(`  [${period}]`);
+      }
       commits.forEach((c) => lines.push(`  * ${c.message} (${c.sha})`));
     });
     lines.push("");
@@ -65,13 +71,21 @@ export function generateJSON({ groups, sorted, grouping, range }: ExportInput): 
     grouping,
     range: range.from ? { from: range.from, to: range.to ?? "HEAD" } : { from: "HEAD" },
     categories: Object.fromEntries(
-      sorted.map((cat) => [cat, {
-        label: catStyle(cat).label,
-        periods: groupByPeriod(groups[cat], grouping).map(({ period, commits }) => ({
-          ...(period && { period }),
-          commits: commits.map(({ sha, message, author, date }) => ({ sha, message, author, date })),
-        })),
-      }])
+      sorted.map((cat) => [
+        cat,
+        {
+          label: catStyle(cat).label,
+          periods: groupByPeriod(groups[cat], grouping).map(({ period, commits }) => ({
+            ...(period && { period }),
+            commits: commits.map(({ sha, message, author, date }) => ({
+              sha,
+              message,
+              author,
+              date,
+            })),
+          })),
+        },
+      ]),
     ),
   };
   return JSON.stringify(data, null, 2);

@@ -16,8 +16,20 @@ import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { EmptyState } from "@/components/EmptyState";
 import type { Commit, RepoInfo, View, Ref } from "@/types";
 
-async function fetchRemoteCommits(owner: string, repo: string, from?: string): Promise<Commit[]> {
-  const params: Record<string, string> = { type: "remote", owner, repo };
+async function fetchRemoteCommits(
+  owner: string,
+  repo: string,
+  from?: string,
+  ignoreMerge = true,
+  conventionalCommits = true,
+): Promise<Commit[]> {
+  const params: Record<string, string> = {
+    type: "remote",
+    owner,
+    repo,
+    ignoreMerge: String(ignoreMerge),
+    conventionalCommits: String(conventionalCommits),
+  };
 
   if (from) params.since = from;
 
@@ -42,10 +54,47 @@ export default function DashboardClient() {
   const [settings, setSettings] = useSettings();
 
   const [welcomed, setWelcomed] = useState(false);
-  
+
   const { recents, add: addRecent } = useRecentRepos();
 
   const [hasExported, setHasExported] = useState(false);
+
+  const ignoreMergeInitialized = useRef(false);
+
+  useEffect(() => {
+    if (!ignoreMergeInitialized.current) {
+      ignoreMergeInitialized.current = true;
+      return;
+    }
+    if (!repoInfo) return;
+
+    if (repoInfo.type === "remote" && repoInfo.owner && repoInfo.repo) {
+      fetchRemoteCommits(
+        repoInfo.owner,
+        repoInfo.repo,
+        repoInfo.from,
+        settings.ignoreMerge,
+        settings.conventionalCommits,
+      )
+        .then((data) => setCommits(data))
+        .catch(() => {});
+    } else if (repoInfo.type === "local" && repoInfo.path) {
+      const params: Record<string, string> = {
+        type: "local",
+        path: repoInfo.path,
+        ignoreMerge: String(settings.ignoreMerge),
+        conventionalCommits: String(settings.conventionalCommits),
+        keywords: JSON.stringify(settings.keywords),
+      };
+      if (repoInfo.from) params.since = repoInfo.from;
+      if (repoInfo.to && repoInfo.to !== "HEAD") params.until = repoInfo.to;
+      api
+        .get<{ data: Commit[] }>("/commits", { params })
+        .then((res) => setCommits(res.data.data ?? []))
+        .catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.ignoreMerge, settings.conventionalCommits]);
 
   useEffect(() => {
     if (autoLoaded.current || !router.isReady) return;
@@ -55,23 +104,37 @@ export default function DashboardClient() {
     if (!owner || !repoName) return;
     autoLoaded.current = true;
 
-    fetchRemoteCommits(owner, repoName, from).then((data) => {
-      setWelcomed(true);
-      handleRepoLoaded(
-        { type: "remote", label: `${owner}/${repoName}`, owner, repo: repoName, from: from ?? "", to: to ?? "HEAD" },
-        data,
-        false,
-        false,
-      );
-      const validViews: View[] = ["overview", "commits", "changelog", "authors"];
-      if (viewParam && (validViews as string[]).includes(viewParam)) {
-        setView(viewParam as View);
-      }
-    }).catch(() => {});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchRemoteCommits(owner, repoName, from, settings.ignoreMerge, settings.conventionalCommits)
+      .then((data) => {
+        setWelcomed(true);
+        handleRepoLoaded(
+          {
+            type: "remote",
+            label: `${owner}/${repoName}`,
+            owner,
+            repo: repoName,
+            from: from ?? "",
+            to: to ?? "HEAD",
+          },
+          data,
+          false,
+          false,
+        );
+        const validViews: View[] = ["overview", "commits", "changelog", "authors"];
+        if (viewParam && (validViews as string[]).includes(viewParam)) {
+          setView(viewParam as View);
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady]);
 
-  function handleRepoLoaded(info: RepoInfo, data: Commit[], refsOrUrl: Ref[] | boolean = true, updateUrl = true) {
+  function handleRepoLoaded(
+    info: RepoInfo,
+    data: Commit[],
+    refsOrUrl: Ref[] | boolean = true,
+    updateUrl = true,
+  ) {
     setRepoInfo(info);
 
     setCommits(data);
@@ -85,15 +148,22 @@ export default function DashboardClient() {
     addRecent({
       label: info.label,
       type: info.type,
-      url:  info.type === "remote" ? `https://github.com/${info.owner}/${info.repo}` : undefined,
+      url: info.type === "remote" ? `https://github.com/${info.owner}/${info.repo}` : undefined,
       path: info.path,
       from: info.from,
-      to:   info.to,
+      to: info.to,
     });
 
     if (shouldUpdateUrl && info.type === "remote") {
       router.replace(
-        { query: { repo: `${info.owner}/${info.repo}`, from: info.from ?? "", to: info.to ?? "HEAD", view: "overview" } },
+        {
+          query: {
+            repo: `${info.owner}/${info.repo}`,
+            from: info.from ?? "",
+            to: info.to ?? "HEAD",
+            view: "overview",
+          },
+        },
         undefined,
         { shallow: true },
       );
@@ -110,17 +180,26 @@ export default function DashboardClient() {
     const [, owner, repo] = match;
 
     setWelcomed(true);
-    
-    fetchRemoteCommits(owner, repo, recent.from).then((data) => {
-      handleRepoLoaded(
-        { type: "remote", label: recent.label, owner, repo, from: recent.from ?? "", to: recent.to ?? "HEAD" },
-        data,
-      );
-    }).catch(() => {});
+
+    fetchRemoteCommits(owner, repo, recent.from, settings.ignoreMerge, settings.conventionalCommits)
+      .then((data) => {
+        handleRepoLoaded(
+          {
+            type: "remote",
+            label: recent.label,
+            owner,
+            repo,
+            from: recent.from ?? "",
+            to: recent.to ?? "HEAD",
+          },
+          data,
+        );
+      })
+      .catch(() => {});
   }
 
   const handleCategoryChange = useCallback((sha: string, category: string) => {
-    setCommits((prev) => prev.map((c) => c.sha === sha ? { ...c, category } : c));
+    setCommits((prev) => prev.map((c) => (c.sha === sha ? { ...c, category } : c)));
   }, []);
 
   function handleSetView(v: View) {
@@ -131,7 +210,9 @@ export default function DashboardClient() {
     }
   }
 
-  const noRepo = (view === "overview" || view === "commits" || view === "changelog" || view === "authors") && !repoInfo;
+  const noRepo =
+    (view === "overview" || view === "commits" || view === "changelog" || view === "authors") &&
+    !repoInfo;
   const showWelcome = !welcomed && view === "select" && !repoInfo;
 
   return (
@@ -141,14 +222,38 @@ export default function DashboardClient() {
         {showWelcome && <WelcomeScreen onStart={() => setWelcomed(true)} />}
 
         <div className={showWelcome || view !== "select" ? "hidden" : ""}>
-          <SelectRepo onLoaded={handleRepoLoaded} onQuickLoad={handleQuickLoad} recents={recents} keywords={settings.keywords} hasExported={hasExported} />
+          <SelectRepo
+            onLoaded={handleRepoLoaded}
+            onQuickLoad={handleQuickLoad}
+            recents={recents}
+            keywords={settings.keywords}
+            ignoreMerge={settings.ignoreMerge}
+            conventionalCommits={settings.conventionalCommits}
+            hasExported={hasExported}
+          />
         </div>
 
-        {view === "overview"  && repoInfo && <Overview commits={commits} repoInfo={repoInfo} refs={refs} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}
-        {view === "commits"   && repoInfo && <CommitsView commits={commits} onCategoryChange={handleCategoryChange} />}
-        {view === "changelog" && repoInfo && <ChangelogView commits={commits} repoInfo={repoInfo} onExport={() => setHasExported(true)} />}
-        {view === "authors"   && repoInfo && <AuthorView commits={commits} />}
-        {view === "settings"  && <SettingsView settings={settings} setSettings={setSettings} />}
+        {view === "overview" && repoInfo && (
+          <Overview
+            commits={commits}
+            repoInfo={repoInfo}
+            refs={refs}
+            onViewAllCommits={() => handleSetView("commits")}
+            onViewChangelog={() => handleSetView("changelog")}
+          />
+        )}
+        {view === "commits" && repoInfo && (
+          <CommitsView commits={commits} onCategoryChange={handleCategoryChange} />
+        )}
+        {view === "changelog" && repoInfo && (
+          <ChangelogView
+            commits={commits}
+            repoInfo={repoInfo}
+            onExport={() => setHasExported(true)}
+          />
+        )}
+        {view === "authors" && repoInfo && <AuthorView commits={commits} />}
+        {view === "settings" && <SettingsView settings={settings} setSettings={setSettings} />}
         {noRepo && <EmptyState onSelect={() => handleSetView("select")} />}
       </main>
     </div>

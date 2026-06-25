@@ -3,12 +3,12 @@ import type { Settings } from "@/types";
 
 const DEFAULT_SETTINGS: Settings = {
   keywords: {
-    feat:     ["adds", "implements", "creates", "introduces"],
-    fix:      ["fixes", "resolves", "patches", "corrects"],
-    docs:     ["documents", "comments", "readme"],
+    feat: ["adds", "implements", "creates", "introduces"],
+    fix: ["fixes", "resolves", "patches", "corrects"],
+    docs: ["documents", "comments", "readme"],
     refactor: ["refactors", "reorganizes", "updates", "bumps", "removes", "cleans"],
-    style:    ["styles", "layout", "css"],
-    test:     ["tests", "specs", "coverage"],
+    style: ["styles", "layout", "css"],
+    test: ["tests", "specs", "coverage"],
   },
   conventionalCommits: true,
   ignoreMerge: true,
@@ -28,16 +28,20 @@ export function useSettings(): [Settings, (s: Settings) => void] {
       return {
         keywords: { ...DEFAULT_SETTINGS.keywords, ...(parsed.keywords ?? {}) },
         conventionalCommits: parsed.conventionalCommits ?? DEFAULT_SETTINGS.conventionalCommits,
-        ignoreMerge:         parsed.ignoreMerge         ?? DEFAULT_SETTINGS.ignoreMerge,
-        categorizeByFile:    parsed.categorizeByFile    ?? DEFAULT_SETTINGS.categorizeByFile,
-        includeSquash:       parsed.includeSquash       ?? DEFAULT_SETTINGS.includeSquash,
+        ignoreMerge: parsed.ignoreMerge ?? DEFAULT_SETTINGS.ignoreMerge,
+        categorizeByFile: parsed.categorizeByFile ?? DEFAULT_SETTINGS.categorizeByFile,
+        includeSquash: parsed.includeSquash ?? DEFAULT_SETTINGS.includeSquash,
       };
-    } catch { return DEFAULT_SETTINGS; }
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
   });
 
   const setSettings = useCallback((s: Settings) => {
     setSettingsState(s);
-    try { localStorage.setItem("gitlog:settings", JSON.stringify(s)); } catch {}
+    try {
+      localStorage.setItem("gitlog:settings", JSON.stringify(s));
+    } catch {}
   }, []);
 
   return [settings, setSettings];

@@ -13,7 +13,7 @@ export function groupBy(commits: Commit[], key: keyof Commit): Record<string, nu
 export function lastCommitAgo(commits: Commit[], category: string): string | null {
   const filtered = commits.filter((c) => c.category === category);
   if (!filtered.length) return null;
-  const latest = filtered.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b);
+  const latest = filtered.reduce((a, b) => (new Date(a.date) > new Date(b.date) ? a : b));
   return formatDistanceToNow(new Date(latest.date), { addSuffix: true, locale: enUS });
 }
 

@@ -33,7 +33,11 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
     if (refs.length > 0 || repoInfo.type !== "remote") return;
     setRefsLoading(true);
     try {
-      const params: Record<string, string> = { type: "remote", owner: repoInfo.owner!, repo: repoInfo.repo! };
+      const params: Record<string, string> = {
+        type: "remote",
+        owner: repoInfo.owner!,
+        repo: repoInfo.repo!,
+      };
       if (repoInfo.token) params.token = repoInfo.token;
       const res = await api.get<{ data: Ref[] }>("/tags", { params });
       const fetched = res.data.data ?? [];
@@ -50,7 +54,9 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
     setCompareState({ status: "loading" });
     try {
       const params: Record<string, string> = {
-        type: "remote", owner: repoInfo.owner!, repo: repoInfo.repo!,
+        type: "remote",
+        owner: repoInfo.owner!,
+        repo: repoInfo.repo!,
         ...(from && { since: from }),
         ...(to && to !== "HEAD" && { until: to }),
       };
@@ -82,16 +88,28 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
     <div className="panel">
       <div className="flex items-center justify-between mb-4">
         <p className="text-text-dim text-[10px] uppercase tracking-widest">Release diff</p>
-        <button onClick={handleClose} className="text-text-dim text-[11px] hover:text-text cursor-pointer">✕</button>
+        <button
+          onClick={handleClose}
+          className="text-text-dim text-[11px] hover:text-text cursor-pointer"
+        >
+          ✕
+        </button>
       </div>
 
       <div className="flex flex-wrap gap-3 items-end mb-4">
         <div className="flex flex-col gap-1 w-56">
-          <label className="text-text-dim text-[10px] uppercase tracking-widest">From (baseline)</label>
+          <label className="text-text-dim text-[10px] uppercase tracking-widest">
+            From (baseline)
+          </label>
           {refsLoading ? (
             <div className="w-full h-[46px] bg-panel-2 border border-line rounded animate-pulse" />
           ) : (
-            <TagSelect value={from} onValueChange={setFrom} options={fromOptions} placeholder="beginning of history" />
+            <TagSelect
+              value={from}
+              onValueChange={setFrom}
+              options={fromOptions}
+              placeholder="beginning of history"
+            />
           )}
         </div>
         <div className="flex flex-col gap-1 w-48">
@@ -107,7 +125,13 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
           disabled={compareState.status === "loading" || refsLoading}
           className="px-4 py-3 rounded-lg bg-add-dim border border-add text-add text-[13px] font-mono hover:brightness-110 transition-all cursor-pointer disabled:opacity-50"
         >
-          {compareState.status === "loading" ? "loading..." : <>Compare <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" /></>}
+          {compareState.status === "loading" ? (
+            "loading..."
+          ) : (
+            <>
+              Compare <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
+            </>
+          )}
         </button>
       </div>
 
@@ -116,7 +140,13 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
       )}
 
       {compareState.status === "done" && (
-        <DiffResult commits={commits} baseline={compareState.commits} repoInfo={repoInfo} baseFrom={compareState.from} baseTo={compareState.to} />
+        <DiffResult
+          commits={commits}
+          baseline={compareState.commits}
+          repoInfo={repoInfo}
+          baseFrom={compareState.from}
+          baseTo={compareState.to}
+        />
       )}
     </div>
   );

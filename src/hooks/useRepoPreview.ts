@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { githubApi } from "@/lib/axios";
-import type { RepoPreview } from "@/components/RepoPreviewPanel";
+import type { RepoPreview } from "@/types";
 
 export function useRepoPreview(owner: string | null, repo: string | null, token: string) {
   const [preview, setPreview] = useState<RepoPreview | null>(null);
 
   const [loading, setLoading] = useState(false);
-  
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -22,7 +22,9 @@ export function useRepoPreview(owner: string | null, repo: string | null, token:
 
         const [repoRes, releasesRes] = await Promise.all([
           githubApi.get<RepoPreview>(`/repos/${owner}/${repo}`, { headers }),
-          githubApi.get(`/repos/${owner}/${repo}/releases?per_page=1`, { headers }).catch(() => null),
+          githubApi
+            .get(`/repos/${owner}/${repo}/releases?per_page=1`, { headers })
+            .catch(() => null),
         ]);
 
         let releases: number | undefined;

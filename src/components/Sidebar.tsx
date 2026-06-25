@@ -2,23 +2,34 @@
 
 import type { View, RepoInfo } from "@/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCodeBranch, faChartPie, faListUl, faSlidersH, faClockRotateLeft, faArrowDown, type IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCodeBranch,
+  faChartPie,
+  faListUl,
+  faSlidersH,
+  faClockRotateLeft,
+  faArrowDown,
+  type IconDefinition,
+} from "@fortawesome/free-solid-svg-icons";
 import { Tooltip } from "react-tooltip";
 
 type Props = { view: View; setView: (v: View) => void; repoInfo: RepoInfo | null };
 
 const navItems: { id: View; label: string; icon: IconDefinition; requiresRepo?: boolean }[] = [
-  { id: "select",    label: "Select repo",  icon: faCodeBranch },
-  { id: "overview",  label: "Overview",     icon: faChartPie,         requiresRepo: true },
-  { id: "commits",   label: "Commits",      icon: faClockRotateLeft,  requiresRepo: true },
-  { id: "changelog", label: "Changelog",    icon: faListUl,           requiresRepo: true },
-  { id: "settings",  label: "Settings",     icon: faSlidersH   },
+  { id: "select", label: "Select repo", icon: faCodeBranch },
+  { id: "overview", label: "Overview", icon: faChartPie, requiresRepo: true },
+  { id: "commits", label: "Commits", icon: faClockRotateLeft, requiresRepo: true },
+  { id: "changelog", label: "Changelog", icon: faListUl, requiresRepo: true },
+  { id: "settings", label: "Settings", icon: faSlidersH },
 ];
 
 export default function Sidebar({ view, setView, repoInfo }: Props) {
   return (
     <>
-      <aside style={{ width: 220, minWidth: 220 }} className="hidden md:flex h-full bg-panel border-r border-line flex-col px-4 py-6 shrink-0 overflow-y-auto">
+      <aside
+        style={{ width: 220, minWidth: 220 }}
+        className="hidden md:flex h-full bg-panel border-r border-line flex-col px-4 py-6 shrink-0 overflow-y-auto"
+      >
         <div className="mb-6">
           <img src="/logo.svg" alt="gitlog" style={{ width: 118, height: "auto" }} />
           {repoInfo && (
@@ -39,8 +50,8 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
                   locked
                     ? "text-text-dim cursor-not-allowed opacity-50"
                     : view === item.id
-                    ? "bg-panel-2 text-text cursor-pointer"
-                    : "bg-transparent text-text-dim hover:text-text cursor-pointer"
+                      ? "bg-panel-2 text-text cursor-pointer"
+                      : "bg-transparent text-text-dim hover:text-text cursor-pointer"
                 }`}
               >
                 {view === item.id && !locked && (
@@ -91,8 +102,8 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
                 locked
                   ? "text-line opacity-40 cursor-not-allowed"
                   : view === item.id
-                  ? "text-add"
-                  : "text-text-dim"
+                    ? "text-add"
+                    : "text-text-dim"
               }`}
             >
               <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
