@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/router";
 import { useRecentRepos } from "@/hooks/useRecentRepos";
 import { useSettings } from "@/hooks/useSettings";
-import { api } from "@/lib/axios";
+import { fetchCommits } from "@/lib/fetchCommits";
 import { categorize } from "@/lib/categorize";
 import Sidebar from "@/components/Sidebar";
 import SelectRepo from "@/components/SelectRepo";
@@ -17,31 +17,6 @@ import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { EmptyState } from "@/components/EmptyState";
 import type { Commit, RepoInfo, View, Ref } from "@/types";
 
-async function fetchRemoteCommits(
-  owner: string,
-  repo: string,
-  from?: string,
-  ignoreMerge = true,
-  conventionalCommits = true,
-  ignoreBots = true,
-  keywords: Record<string, string[]> = {},
-): Promise<Commit[]> {
-  const params: Record<string, string> = {
-    type: "remote",
-    owner,
-    repo,
-    ignoreMerge: String(ignoreMerge),
-    conventionalCommits: String(conventionalCommits),
-    ignoreBots: String(ignoreBots),
-    keywords: JSON.stringify(keywords),
-  };
-
-  if (from) params.since = from;
-
-  const res = await api.get<{ data: Commit[] }>("/commits", { params });
-
-  return res.data.data ?? [];
-}
 
 export default function DashboardClient() {
   const router = useRouter();
@@ -64,9 +39,14 @@ export default function DashboardClient() {
 
   const [hasExported, setHasExported] = useState(false);
 
+  const [categoryOverrides, setCategoryOverrides] = useState<Map<string, string>>(new Map());
+
   const categorizedCommits = useMemo(
-    () => commits.map((c) => ({ ...c, category: categorize(c.message, settings.keywords, settings.conventionalCommits) })),
-    [commits, settings.keywords, settings.conventionalCommits],
+    () => commits.map((c) => ({
+      ...c,
+      category: categoryOverrides.get(c.sha) ?? categorize(c.message, settings.keywords, settings.conventionalCommits),
+    })),
+    [commits, categoryOverrides, settings.keywords, settings.conventionalCommits],
   );
 
   const filterInitialized = useRef(false);
@@ -78,32 +58,23 @@ export default function DashboardClient() {
     }
     if (!repoInfo) return;
 
-    if (repoInfo.type === "remote" && repoInfo.owner && repoInfo.repo) {
-      fetchRemoteCommits(
-        repoInfo.owner,
-        repoInfo.repo,
-        repoInfo.from,
-        settings.ignoreMerge,
-        settings.conventionalCommits,
-        settings.ignoreBots,
-        settings.keywords,
-      )
-        .then((data) => setCommits(data))
-        .catch(() => {});
-    } else if (repoInfo.type === "local" && repoInfo.path) {
-      const params: Record<string, string> = {
-        type: "local",
-        path: repoInfo.path,
-        ignoreMerge: String(settings.ignoreMerge),
-        conventionalCommits: String(settings.conventionalCommits),
-        ignoreBots: String(settings.ignoreBots),
-        keywords: JSON.stringify(settings.keywords),
-      };
-      if (repoInfo.from) params.since = repoInfo.from;
-      if (repoInfo.to && repoInfo.to !== "HEAD") params.until = repoInfo.to;
-      api
-        .get<{ data: Commit[] }>("/commits", { params })
-        .then((res) => setCommits(res.data.data ?? []))
+    const source =
+      repoInfo.type === "remote" && repoInfo.owner && repoInfo.repo
+        ? { type: "remote" as const, owner: repoInfo.owner, repo: repoInfo.repo }
+        : repoInfo.type === "local" && repoInfo.path
+          ? { type: "local" as const, path: repoInfo.path }
+          : null;
+
+    if (source) {
+      fetchCommits(source, {
+        from: repoInfo.from,
+        to: repoInfo.to,
+        ignoreMerge: settings.ignoreMerge,
+        conventionalCommits: settings.conventionalCommits,
+        ignoreBots: settings.ignoreBots,
+        keywords: settings.keywords,
+      })
+        .then((data) => { setCommits(data); setCategoryOverrides(new Map()); })
         .catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,7 +88,7 @@ export default function DashboardClient() {
     if (!owner || !repoName) return;
     autoLoaded.current = true;
 
-    fetchRemoteCommits(owner, repoName, from, settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots, settings.keywords)
+    fetchCommits({ type: "remote", owner, repo: repoName }, { from, ignoreMerge: settings.ignoreMerge, conventionalCommits: settings.conventionalCommits, ignoreBots: settings.ignoreBots, keywords: settings.keywords })
       .then((data) => {
         setWelcomed(true);
         handleRepoLoaded(
@@ -194,7 +165,7 @@ export default function DashboardClient() {
 
     setWelcomed(true);
 
-    fetchRemoteCommits(owner, repo, recent.from, settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots, settings.keywords)
+    fetchCommits({ type: "remote", owner, repo }, { from: recent.from, ignoreMerge: settings.ignoreMerge, conventionalCommits: settings.conventionalCommits, ignoreBots: settings.ignoreBots, keywords: settings.keywords })
       .then((data) => {
         handleRepoLoaded(
           {
@@ -212,7 +183,7 @@ export default function DashboardClient() {
   }
 
   const handleCategoryChange = useCallback((sha: string, category: string) => {
-    setCommits((prev) => prev.map((c) => (c.sha === sha ? { ...c, category } : c)));
+    setCategoryOverrides((prev) => new Map(prev).set(sha, category));
   }, []);
 
   function handleSetView(v: View) {

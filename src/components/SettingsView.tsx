@@ -77,7 +77,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
         description="Adjust the heuristic used to classify commits."
       />
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="panel">
           <div className="flex items-center justify-between mb-4">
             <p className="text-text-dim text-[10px] uppercase tracking-widest">
@@ -116,7 +116,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
 
           <div className="flex gap-2">
             <Select.Root value={selectedCat} onValueChange={setSelectedCat}>
-              <Select.Trigger className="flex items-center gap-2 bg-panel-2 border border-line rounded-[var(--radius-sm)] px-2.5 py-2 text-xs text-text font-mono cursor-pointer outline-none hover:border-text-dim transition-colors">
+              <Select.Trigger className="flex items-center gap-2 bg-panel-2 border border-line rounded-[var(--radius-sm)] px-2.5 py-2 text-xs text-text font-mono cursor-pointer outline-none hover:border-text-dim transition-colors shrink-0">
                 <Select.Value />
                 <Select.Icon>
                   <FontAwesomeIcon icon={faChevronDown} className="w-2 h-2 text-text-dim" />
@@ -153,9 +153,9 @@ export default function SettingsView({ settings, setSettings }: Props) {
               value={newKeyword}
               onChange={(e) => setNewKeyword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addKeyword()}
-              className="flex-1 bg-panel-2 border border-line rounded-[var(--radius-sm)] px-2.5 py-2 text-xs text-text font-mono outline-none focus:border-text-dim placeholder:text-text-dim"
+              className="flex-1 min-w-0 bg-panel-2 border border-line rounded-[var(--radius-sm)] px-2.5 py-2 text-xs text-text font-mono outline-none focus:border-text-dim placeholder:text-text-dim"
             />
-            <Button variant="ghost" onClick={addKeyword} className="px-3 py-2 text-sm">
+            <Button variant="ghost" onClick={addKeyword} className="px-3 py-2 text-sm shrink-0 whitespace-nowrap">
               + add
             </Button>
           </div>
@@ -190,7 +190,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
       <span
         data-tooltip-id="save-settings"
         data-tooltip-content="Change a setting before saving"
-        className="mt-3 block"
+        className="mt-5 block"
         style={{ display: !isDirty && !saved ? "block" : "contents" }}
       >
         <Button onClick={handleSave} disabled={!isDirty && !saved} className="w-full py-2.5">

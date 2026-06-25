@@ -49,6 +49,7 @@ export function RepoInputForm({
               placeholder="https://github.com/owner/repository"
               value={repoUrl}
               onChange={(e) => onRepoUrlChange(e.target.value)}
+              autoComplete="off"
             />
             <div className="flex gap-3 mt-2">
               {["vercel/next.js", "facebook/react", "microsoft/vscode"].map((ex) => (
@@ -84,6 +85,7 @@ export function RepoInputForm({
                   placeholder="ghp_..."
                   value={token}
                   onChange={(e) => onTokenChange(e.target.value)}
+                  autoComplete="new-password"
                 />
               </FormField>
             )}

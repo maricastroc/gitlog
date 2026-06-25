@@ -133,10 +133,10 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <PageHeader
           title="Commits"
-          description={`${filtered.length} de ${commits.length} commits`}
+          description={`${filtered.length} of ${commits.length} commits`}
         />
         {hasFilters && (
           <Button variant="ghost" onClick={resetFilters} className="shrink-0 sm:mt-1">

@@ -100,7 +100,7 @@ export default function Overview({
 
   return (
     <div className="w-full">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2">
         <PageHeader title="Period overview" description={`${since} — ${until}`} />
         <div className="flex flex-col items-end gap-2 sm:mt-1 shrink-0">
           <div className="flex items-center gap-2">
@@ -121,7 +121,7 @@ export default function Overview({
             className="flex flex-col items-center px-5 py-2.5 rounded-lg bg-add-dim border border-add text-add font-mono hover:brightness-110 transition-all cursor-pointer"
           >
             <span className="text-[13px] font-semibold flex items-center gap-2">
-              <FontAwesomeIcon icon={faScroll} className="w-3 h-3" /> generate changelog
+              <FontAwesomeIcon icon={faScroll} className="w-3 h-3" /> view changelog
             </span>
             <span className="text-[10px] opacity-70">
               {commits.length} commits · {authors.length} authors

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "@/lib/axios";
+import { fetchCommits } from "@/lib/fetchCommits";
 import type { Commit, Ref, RepoInfo, Settings } from "@/types";
 import type { AxiosError } from "axios";
 
@@ -46,20 +47,22 @@ export function useRepoLoader(
     }
   }
 
-  async function fetchCommits(params: RepoParams) {
+  async function loadCommits(params: RepoParams) {
     set({ isLoading: true, error: "" });
     try {
-      const commitParams = {
-        ...params,
-        ...(state.from && { since: state.from }),
-        ...(params.type === "local" && state.to !== "HEAD" && { until: state.to }),
-        keywords: JSON.stringify(keywords),
-        ignoreMerge: String(ignoreMerge),
-        conventionalCommits: String(conventionalCommits),
-        ignoreBots: String(ignoreBots),
-      };
-      const res = await api.get<{ data: Commit[] }>("/commits", { params: commitParams });
-      const commits = res.data.data ?? [];
+      const source =
+        params.type === "remote"
+          ? { type: "remote" as const, owner: params.owner, repo: params.repo }
+          : { type: "local" as const, path: params.path };
+
+      const commits = await fetchCommits(source, {
+        from: state.from,
+        to: state.to,
+        ignoreMerge,
+        conventionalCommits,
+        ignoreBots,
+        keywords,
+      });
 
       const info: RepoInfo =
         params.type === "local"
@@ -94,7 +97,7 @@ export function useRepoLoader(
   return {
     ...state,
     fetchTags,
-    fetchCommits,
+    fetchCommits: loadCommits,
     setFrom: (from: string) => set({ from }),
     setTo: (to: string) => set({ to }),
     reset,

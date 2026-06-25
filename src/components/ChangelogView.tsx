@@ -105,7 +105,7 @@ export default function ChangelogView({ commits, repoInfo, showAuthor = false, o
 
   return (
     <div className="w-full">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <PageHeader title="Generated changelog" description={intervalLabel} />
         <div className="flex flex-wrap gap-2 sm:mt-1 shrink-0">
           <Button variant="ghost" onClick={handleCopy}>
