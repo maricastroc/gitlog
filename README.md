@@ -29,11 +29,11 @@ A full-stack changelog generator that turns Git commit history into structured, 
 
 - **Commit overview** — total counts by category, activity timeline, distribution bars, and top contributors at a glance
 - **Commits table** — full list with per-row category editor, date filter, and author filter
-- **Changelog view** — commits grouped and sorted by category, with one-click copy to clipboard or export as `.md`
+- **Changelog view** — commits grouped and sorted by category, with one-click copy to clipboard or export as `.md`, `.txt`, or `.json`
 - **Authors view** — per-contributor breakdown showing their commits, categories, and dates
 - **Configurable settings** — toggle conventional commits detection, merge commit filtering, squash inclusion, and define keyword rules per category
 - **Remote & local repos** — GitHub repos via URL (with optional token for private repos or rate limit bypass); local repos by filesystem path when running locally
-- **Exportable markdown** — generated changelog is ready to paste into a `CHANGELOG.md`
+- **Multi-format export** — generated changelog can be exported as `.md` (ready to paste into `CHANGELOG.md`), `.txt` (plain text for terminals and legacy systems), or `.json` (structured with metadata for CI/CD pipelines)
 
 ---
 

@@ -39,15 +39,50 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
     return lines.join("\n");
   }
 
+  function generatePlainText() {
+    const lines = ["CHANGELOG", "=========", ""];
+    sorted.forEach((cat) => {
+      lines.push(`${CAT_LABEL[cat] ?? cat}`);
+      lines.push("-".repeat((CAT_LABEL[cat] ?? cat).length));
+      groups[cat].forEach((c) => lines.push(`  * ${c.message} (${c.sha})`));
+      lines.push("");
+    });
+    return lines.join("\n");
+  }
+
+  function generateJSON() {
+    const data = {
+      generatedAt: new Date().toISOString(),
+      range: repoInfo.from ? { from: repoInfo.from, to: repoInfo.to ?? "HEAD" } : { from: "HEAD" },
+      categories: Object.fromEntries(
+        sorted.map((cat) => [
+          cat,
+          {
+            label: CAT_LABEL[cat] ?? cat,
+            commits: groups[cat].map((c) => ({ sha: c.sha, message: c.message, author: c.author, date: c.date })),
+          },
+        ])
+      ),
+    };
+    return JSON.stringify(data, null, 2);
+  }
+
   function handleCopy() {
     navigator.clipboard.writeText(generateMarkdown());
     setCopied(true); setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleExport() {
+  function download(content: string, filename: string, mime: string) {
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([generateMarkdown()], { type: "text/markdown" }));
-    a.download = "CHANGELOG.md"; a.click();
+    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+    a.download = filename;
+    a.click();
+  }
+
+  function handleExport(format: "md" | "txt" | "json") {
+    if (format === "md")   return download(generateMarkdown(),  "CHANGELOG.md",  "text/markdown");
+    if (format === "txt")  return download(generatePlainText(), "CHANGELOG.txt", "text/plain");
+    if (format === "json") return download(generateJSON(),      "changelog.json","application/json");
   }
 
   const intervalLabel = repoInfo.from ? `${repoInfo.from} → ${repoInfo.to ?? "HEAD"}` : "HEAD";
@@ -58,7 +93,9 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
         <PageHeader title="Generated changelog" description={intervalLabel} />
         <div className="flex gap-2 sm:mt-1 shrink-0">
           <button onClick={handleCopy} className="btn ghost">{copied ? "✓ copied!" : "copy markdown"}</button>
-          <button onClick={handleExport} className="btn">export .md</button>
+          <button onClick={() => handleExport("md")}   className="btn ghost">export .md</button>
+          <button onClick={() => handleExport("txt")}  className="btn ghost">export .txt</button>
+          <button onClick={() => handleExport("json")} className="btn">export .json</button>
         </div>
       </div>
 
