@@ -119,6 +119,8 @@ export default function DashboardClient() {
       type: info.type,
       url:  info.type === "remote" ? `https://github.com/${info.owner}/${info.repo}` : undefined,
       path: info.path,
+      from: info.from,
+      to:   info.to,
     });
     if (shouldUpdateUrl && info.type === "remote") {
       router.replace(
@@ -127,6 +129,22 @@ export default function DashboardClient() {
         { shallow: true },
       );
     }
+  }
+
+  function handleQuickLoad(recent: import("@/hooks/useRecentRepos").RecentRepo) {
+    if (recent.type !== "remote" || !recent.url) return;
+    const match = recent.url.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (!match) return;
+    const [, owner, repo] = match;
+    setWelcomed(true);
+    const params: Record<string, string> = { type: "remote", owner, repo };
+    if (recent.from) params.since = recent.from;
+    api.get<{ data: Commit[] }>("/commits", { params }).then((res) => {
+      handleRepoLoaded(
+        { type: "remote", label: recent.label, owner, repo, from: recent.from ?? "", to: recent.to ?? "HEAD" },
+        res.data.data ?? [],
+      );
+    }).catch(() => {});
   }
 
   function handleCategoryChange(sha: string, category: string) {
@@ -149,7 +167,7 @@ export default function DashboardClient() {
 
         {/* SelectRepo sempre montado para preservar estado dos inputs */}
         <div className={showWelcome || view !== "select" ? "hidden" : ""}>
-          <SelectRepo onLoaded={handleRepoLoaded} recents={recents} keywords={settings.keywords} />
+          <SelectRepo onLoaded={handleRepoLoaded} onQuickLoad={handleQuickLoad} recents={recents} keywords={settings.keywords} />
         </div>
 
         {view === "overview"  && repoInfo && <Overview commits={commits} repoInfo={repoInfo} refs={refs} onViewAllCommits={() => handleSetView("commits")} onViewChangelog={() => handleSetView("changelog")} />}

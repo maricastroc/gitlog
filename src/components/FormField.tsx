@@ -11,7 +11,7 @@ export default function FormField({ label, children, hint }: Props) {
     <div>
       <label className="block text-[10px] text-text-dim uppercase tracking-widest mb-2">{label}</label>
       {children}
-      {hint && <p className="text-[11px] text-line mt-1.5 font-mono">{hint}</p>}
+      {hint && <p className="text-[11px] text-text-dim mt-1.5 font-mono">{hint}</p>}
     </div>
   );
 }

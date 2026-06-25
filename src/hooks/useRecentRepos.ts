@@ -5,6 +5,8 @@ export type RecentRepo = {
   type: "remote" | "local";
   url?: string;
   path?: string;
+  from?: string;
+  to?: string;
 };
 
 const KEY = "gitlog:recent-repos";

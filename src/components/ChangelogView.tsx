@@ -1,9 +1,12 @@
 "use client";
 
 import type { Commit, RepoInfo } from "@/types";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
+import * as Popover from "@radix-ui/react-popover";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown, faCheck } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "@/components/PageHeader";
 
 const CAT_TEXT: Record<string, string> = {
@@ -46,13 +49,37 @@ function groupByPeriod(commits: Commit[], grouping: Grouping): { period: string;
 export default function ChangelogView({ commits, repoInfo }: Props) {
   const [copied, setCopied] = useState(false);
   const [grouping, setGrouping] = useState<Grouping>("none");
+  const [authorOpen, setAuthorOpen] = useState(false);
 
-  const groups = commits.reduce<Record<string, Commit[]>>((acc, c) => {
+  const allAuthors = useMemo(() => [...new Set(commits.map((c) => c.author))].sort(), [commits]);
+  const [selectedAuthors, setSelectedAuthors] = useState<Set<string>>(() => new Set(allAuthors));
+
+  function toggleAuthor(author: string) {
+    setSelectedAuthors((prev) => {
+      const next = new Set(prev);
+      next.has(author) ? next.delete(author) : next.add(author);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelectedAuthors(selectedAuthors.size === allAuthors.length ? new Set() : new Set(allAuthors));
+  }
+
+  const filtered = commits.filter((c) => selectedAuthors.has(c.author));
+
+  const groups = filtered.reduce<Record<string, Commit[]>>((acc, c) => {
     if (!acc[c.category]) acc[c.category] = [];
     acc[c.category].push(c);
     return acc;
   }, {});
   const sorted = ORDER.filter((k) => groups[k]);
+
+  const authorLabel = selectedAuthors.size === allAuthors.length
+    ? "All authors"
+    : selectedAuthors.size === 0
+    ? "No authors"
+    : `${selectedAuthors.size} of ${allAuthors.length} authors`;
 
   function generateMarkdown() {
     const lines = ["# Changelog\n"];
@@ -142,20 +169,58 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center gap-1 mb-4 p-1 bg-panel-2 border border-line rounded-lg w-fit">
-        {GROUPING_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setGrouping(opt.value)}
-            className={`px-3 py-1.5 rounded-md text-[11px] font-mono cursor-pointer transition-all ${
-              grouping === opt.value
-                ? "bg-panel border border-line text-text shadow-sm"
-                : "text-text-dim hover:text-text border border-transparent"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="flex items-center gap-1 p-1 bg-panel-2 border border-line rounded-lg w-fit">
+          {GROUPING_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setGrouping(opt.value)}
+              className={`px-3 py-1.5 rounded-md text-[11px] font-mono cursor-pointer transition-all ${
+                grouping === opt.value
+                  ? "bg-panel border border-line text-text shadow-sm"
+                  : "text-text-dim hover:text-text border border-transparent"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        <Popover.Root open={authorOpen} onOpenChange={setAuthorOpen}>
+          <Popover.Trigger className="flex items-center gap-2 px-3 py-[9px] rounded-lg bg-panel-2 border border-line text-[11px] font-mono text-text-dim hover:text-text hover:border-text-dim transition-colors cursor-pointer outline-none">
+            {authorLabel}
+            <FontAwesomeIcon icon={faChevronDown} className={`w-2 h-2 transition-transform ${authorOpen ? "rotate-180" : ""}`} />
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content sideOffset={6} align="start" className="z-50 w-64 bg-panel-2 border border-line rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden outline-none">
+              <div className="p-1.5 border-b border-line">
+                <button
+                  onClick={toggleAll}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-[11px] font-mono text-text-dim hover:text-text hover:bg-panel transition-colors cursor-pointer text-left"
+                >
+                  <span className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${selectedAuthors.size === allAuthors.length ? "bg-add border-add" : "border-line"}`}>
+                    {selectedAuthors.size === allAuthors.length && <FontAwesomeIcon icon={faCheck} className="w-2 h-2 text-bg" />}
+                  </span>
+                  Select all
+                </button>
+              </div>
+              <div className="p-1 max-h-60 overflow-y-auto">
+                {allAuthors.map((author) => (
+                  <button
+                    key={author}
+                    onClick={() => toggleAuthor(author)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-[11px] font-mono text-text-dim hover:text-text hover:bg-panel transition-colors cursor-pointer text-left"
+                  >
+                    <span className={`w-3 h-3 rounded border flex items-center justify-center shrink-0 ${selectedAuthors.has(author) ? "bg-add border-add" : "border-line"}`}>
+                      {selectedAuthors.has(author) && <FontAwesomeIcon icon={faCheck} className="w-2 h-2 text-bg" />}
+                    </span>
+                    <span className="truncate">{author}</span>
+                  </button>
+                ))}
+              </div>
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
       </div>
 
       <div className="panel">

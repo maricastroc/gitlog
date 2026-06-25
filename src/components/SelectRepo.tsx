@@ -14,7 +14,7 @@ import TagSelect from "@/components/TagSelect";
 import RepoPreviewPanel from "@/components/RepoPreviewPanel";
 import PageHeader from "@/components/PageHeader";
 
-type Props = { onLoaded: (info: RepoInfo, commits: Commit[]) => void; recents?: RecentRepo[]; keywords?: Settings["keywords"] };
+type Props = { onLoaded: (info: RepoInfo, commits: Commit[]) => void; onQuickLoad?: (recent: RecentRepo) => void; recents?: RecentRepo[]; keywords?: Settings["keywords"] };
 
 function parseRemote(url: string) {
   const match = url.match(/github\.com[/:]([^/]+)\/([^/\s.]+)/);
@@ -24,7 +24,7 @@ function parseRemote(url: string) {
   return null;
 }
 
-export default function SelectRepo({ onLoaded, recents = [], keywords = {} }: Props) {
+export default function SelectRepo({ onLoaded, onQuickLoad, recents = [], keywords = {} }: Props) {
   const [tab, setTab]             = useState<"remote" | "local">("remote");
   const [repoUrl, setRepoUrl]     = useState("");
   const [token, setToken]         = useState("");
@@ -76,7 +76,7 @@ export default function SelectRepo({ onLoaded, recents = [], keywords = {} }: Pr
 
   return (
     <div className="flex flex-col md:flex-row gap-8 md:gap-12 h-full">
-      <div className="w-full md:w-[420px] md:shrink-0">
+      <div className="w-full md:w-[520px] md:shrink-0">
         <Stepper step={loader.step} />
         <PageHeader
           title={loader.step === 0 ? "Select repository" : "Select range"}
@@ -166,16 +166,33 @@ export default function SelectRepo({ onLoaded, recents = [], keywords = {} }: Pr
                   Recent
                 </p>
                 <div className="flex flex-col gap-1.5">
-                  {recents.map((r) => (
-                    <button key={r.url ?? r.path} onClick={() => {
-                      if (r.type === "remote" && r.url)  { switchTab("remote"); setRepoUrl(r.url); }
-                      if (r.type === "local"  && r.path) { switchTab("local");  setLocalPath(r.path); }
-                    }}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-panel-2 border border-line text-left hover:border-text-dim transition-colors cursor-pointer">
-                      <span className="text-add text-[10px] font-mono shrink-0">{r.type === "remote" ? "gh" : "local"}</span>
-                      <span className="text-text text-[12px] font-mono truncate">{r.label}</span>
-                    </button>
-                  ))}
+                  {recents.map((r) => {
+                    const hasRange = r.type === "remote" && (r.from || r.to);
+                    return (
+                      <button key={(r.url ?? r.path) + (r.from ?? "")} onClick={() => {
+                        if (hasRange && onQuickLoad) {
+                          onQuickLoad(r);
+                        } else {
+                          if (r.type === "remote" && r.url)  { switchTab("remote"); setRepoUrl(r.url); }
+                          if (r.type === "local"  && r.path) { switchTab("local");  setLocalPath(r.path); }
+                        }
+                      }}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-panel-2 border border-line text-left hover:border-text-dim transition-colors cursor-pointer group">
+                        <span className="text-add text-[10px] font-mono shrink-0">{r.type === "remote" ? "gh" : "local"}</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-text text-[12px] font-mono truncate block">{r.label}</span>
+                          {hasRange && (
+                            <span className="text-text-dim text-[10px] font-mono truncate block">
+                              {r.from || "start"} → {r.to ?? "HEAD"}
+                            </span>
+                          )}
+                        </div>
+                        {hasRange && (
+                          <span className="text-add text-[10px] font-mono shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

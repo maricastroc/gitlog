@@ -25,6 +25,10 @@ A full-stack changelog generator that turns Git commit history into structured, 
 
 **Changelog time grouping** — the generated changelog can be grouped by month or week within each category, making long histories easier to read. The grouping is reflected in all export formats (`.md` gets `###` sub-headings, `.json` gets a `periods` array).
 
+**Release diff** — the overview exposes a "Compare with another range" panel that fetches a second commit range and renders a side-by-side category breakdown: current count, delta (`+4`, `-2`), percentage share before and after, and a growth multiplier (`1.5× growth`). The available refs (branches and tags) are reused from the initial load, so no extra API call is needed when opening the panel (`ReleaseDiff.tsx`).
+
+**Shareable permalink** — after loading a remote repository, the URL is updated with `?repo=owner/repo&from=ref&to=ref` query params. Opening that URL auto-fetches the same commits and lands directly on the overview, so analysis results can be shared with a single link. A "share" button in the overview header copies the current URL to the clipboard.
+
 ---
 
 ## Features
@@ -35,6 +39,8 @@ A full-stack changelog generator that turns Git commit history into structured, 
 - **Authors view** — per-contributor breakdown showing their commits, categories, and dates
 - **Configurable settings** — toggle conventional commits detection, merge commit filtering, squash inclusion, and define keyword rules per category
 - **Branch & tag comparison** — range selectors list branches and tags in grouped, searchable dropdowns — compare `main` vs `develop` or `v1.0` vs `v2.0` directly
+- **Release diff** — compare two commit ranges side by side with per-category deltas, percentage shares, and growth multipliers
+- **Shareable permalink** — URL encodes the repository and range so any analysis can be shared as a direct link; auto-loads on open
 - **Remote & local repos** — GitHub repos via URL (with optional token for private repos or rate limit bypass); local repos by filesystem path when running locally
 - **Multi-format export** — generated changelog can be exported as `.md` (ready to paste into `CHANGELOG.md`), `.txt` (plain text for terminals and legacy systems), or `.json` (structured with metadata for CI/CD pipelines)
 
