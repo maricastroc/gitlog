@@ -3,6 +3,7 @@
 import type { View, RepoInfo } from "@/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCodeBranch, faChartPie, faListUl, faSlidersH, faClockRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import { Tooltip } from "react-tooltip";
 
 type Props = { view: View; setView: (v: View) => void; repoInfo: RepoInfo | null };
 
@@ -34,7 +35,7 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
                 key={item.id}
                 onClick={() => !locked && setView(item.id)}
                 disabled={locked}
-                title={locked ? "Load a repository first" : undefined}
+                data-tooltip-id={locked ? "locked-nav" : undefined}
                 className={`relative flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] text-left w-full border-none font-mono transition-colors ${
                   locked
                     ? "text-text-dim cursor-not-allowed opacity-50"
@@ -52,6 +53,22 @@ export default function Sidebar({ view, setView, repoInfo }: Props) {
             );
           })}
         </nav>
+
+        <Tooltip
+          id="locked-nav"
+          content="Select a repository first"
+          place="right"
+          style={{
+            fontSize: 11,
+            fontFamily: "var(--font-mono, monospace)",
+            padding: "5px 10px",
+            backgroundColor: "#1a1d1f",
+            color: "#8a9099",
+            border: "1px solid #2a2e33",
+            borderRadius: 6,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+          }}
+        />
 
         {repoInfo?.from && (
           <div className="mt-auto pt-3 border-t border-line px-2">

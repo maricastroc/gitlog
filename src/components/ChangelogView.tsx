@@ -1,7 +1,8 @@
 "use client";
 
 import type { Commit, RepoInfo } from "@/types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/router";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import * as Popover from "@radix-ui/react-popover";
@@ -47,9 +48,22 @@ function groupByPeriod(commits: Commit[], grouping: Grouping): { period: string;
 }
 
 export default function ChangelogView({ commits, repoInfo }: Props) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [grouping, setGrouping] = useState<Grouping>("none");
   const [authorOpen, setAuthorOpen] = useState(false);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const g = router.query.grouping as string | undefined;
+    if (g === "month" || g === "week") setGrouping(g);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady]);
+
+  function handleGrouping(g: Grouping) {
+    setGrouping(g);
+    router.replace({ query: { ...router.query, grouping: g } }, undefined, { shallow: true });
+  }
 
   const allAuthors = useMemo(() => [...new Set(commits.map((c) => c.author))].sort(), [commits]);
   const [selectedAuthors, setSelectedAuthors] = useState<Set<string>>(() => new Set(allAuthors));
@@ -174,7 +188,7 @@ export default function ChangelogView({ commits, repoInfo }: Props) {
           {GROUPING_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setGrouping(opt.value)}
+              onClick={() => handleGrouping(opt.value)}
               className={`px-3 py-1.5 rounded-md text-[11px] font-mono cursor-pointer transition-all ${
                 grouping === opt.value
                   ? "bg-panel border border-line text-text shadow-sm"

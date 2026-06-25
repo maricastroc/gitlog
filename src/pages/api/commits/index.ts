@@ -35,22 +35,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const headers: HeadersInit = { Accept: "application/vnd.github+json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  async function resolveSha(ref: string) {
+  async function resolveSha(ref: string): Promise<string | null> {
     if (!ref || ref === "HEAD") return null;
     for (const prefix of ["tags", "heads"]) {
       const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/${prefix}/${ref}`, { headers });
       if (r.ok) {
-        const d = await r.json() as { object?: { sha?: string } };
-        if (d.object?.sha) return d.object.sha;
+        const d = await r.json() as { object?: { sha?: string; type?: string } };
+        let sha = d.object?.sha;
+        if (sha && d.object?.type === "tag") {
+          const tagRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/tags/${sha}`, { headers });
+          if (tagRes.ok) {
+            const tag = await tagRes.json() as { object?: { sha?: string } };
+            sha = tag.object?.sha ?? sha;
+          }
+        }
+        if (sha) return sha;
       }
     }
     return null;
+  }
+
+  async function resolveDate(ref: string): Promise<string | null> {
+    const sha = await resolveSha(ref);
+    if (!sha) return null;
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits/${sha}`, { headers });
+    if (!r.ok) return null;
+    const d = await r.json() as { commit?: { author?: { date?: string } } };
+    return d.commit?.author?.date ?? null;
   }
 
   const params = new URLSearchParams({ per_page: "100" });
   if (since && since !== "HEAD") {
     const sha = await resolveSha(since);
     if (sha) params.set("sha", sha);
+  }
+  if (until && until !== "HEAD") {
+    const date = await resolveDate(until);
+    if (date) params.set("until", date);
   }
 
   const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?${params}`, { headers });

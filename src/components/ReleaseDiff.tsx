@@ -69,7 +69,9 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
       const params: Record<string, string> = {
         type: "remote", owner: repoInfo.owner!, repo: repoInfo.repo!,
         ...(from && { since: from }),
+        ...(to && to !== "HEAD" && { until: to }),
       };
+      if (repoInfo.token) params.token = repoInfo.token;
       const res = await api.get<{ data: Commit[] }>("/commits", { params });
       setCompareState({ status: "done", commits: res.data.data ?? [], from, to });
     } catch {

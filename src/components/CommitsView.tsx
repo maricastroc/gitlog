@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/router";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import * as Select from "@radix-ui/react-select";
@@ -56,12 +57,33 @@ const ALL_CATS = ["feat", "fix", "chore", "docs", "refactor", "style", "test", "
 type Props = { commits: Commit[]; onCategoryChange: (sha: string, category: string) => void };
 
 export default function CommitsView({ commits, onCategoryChange }: Props) {
+  const router = useRouter();
+
   const [search, setSearch]       = useState("");
   const [catFilter, setCat]       = useState(ALL);
   const [authorFilter, setAuthor] = useState(ALL);
   const [dateFrom, setDateFrom]   = useState("");
   const [dateTo, setDateTo]       = useState("");
   const [page, setPage]           = useState(1);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const q = router.query;
+    if (q.q)          setSearch(q.q as string);
+    if (q.cat)        setCat(q.cat as string);
+    if (q.author)     setAuthor(q.author as string);
+    if (q.dateFrom)   setDateFrom(q.dateFrom as string);
+    if (q.dateTo)     setDateTo(q.dateTo as string);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady]);
+
+  function syncUrl(updates: Record<string, string>) {
+    const next: Record<string, string> = {};
+    for (const [k, v] of Object.entries({ ...router.query, ...updates })) {
+      if (typeof v === "string") next[k] = v;
+    }
+    router.replace({ query: next }, undefined, { shallow: true });
+  }
 
   const authors    = useMemo(() => [...new Set(commits.map((c) => c.author))].sort(), [commits]);
   const categories = useMemo(() => [...new Set(commits.map((c) => c.category))].sort(), [commits]);
@@ -86,6 +108,7 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
 
   function resetFilters() {
     setSearch(""); setCat(ALL); setAuthor(ALL); setDateFrom(""); setDateTo(""); setPage(1);
+    syncUrl({ q: "", cat: "", author: "", dateFrom: "", dateTo: "" });
   }
 
   const catOptions    = [{ value: ALL, label: "All categories" }, ...categories.map((c) => ({ value: c, label: c }))];
@@ -105,13 +128,13 @@ export default function CommitsView({ commits, onCategoryChange }: Props) {
           type="text"
           placeholder="Search message, author, sha..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); syncUrl({ q: e.target.value }); }}
           className="sm:col-span-2 bg-panel border border-line rounded-lg px-3 py-2 text-[12px] font-mono text-text placeholder:text-text-dim focus:outline-none focus:border-add transition-colors"
         />
-        <FilterSelect value={catFilter}    onValueChange={(v) => { setCat(v);    setPage(1); }} placeholder="All categories" options={catOptions} />
-        <FilterSelect value={authorFilter} onValueChange={(v) => { setAuthor(v); setPage(1); }} placeholder="All authors"    options={authorOptions} />
-        <DatePicker value={dateFrom} onChange={(v) => { setDateFrom(v); setPage(1); }} placeholder="From (date)" />
-        <DatePicker value={dateTo}   onChange={(v) => { setDateTo(v);   setPage(1); }} placeholder="To (date)" />
+        <FilterSelect value={catFilter}    onValueChange={(v) => { setCat(v);    setPage(1); syncUrl({ cat: v }); }}    placeholder="All categories" options={catOptions} />
+        <FilterSelect value={authorFilter} onValueChange={(v) => { setAuthor(v); setPage(1); syncUrl({ author: v }); }} placeholder="All authors"    options={authorOptions} />
+        <DatePicker value={dateFrom} onChange={(v) => { setDateFrom(v); setPage(1); syncUrl({ dateFrom: v }); }} placeholder="From (date)" />
+        <DatePicker value={dateTo}   onChange={(v) => { setDateTo(v);   setPage(1); syncUrl({ dateTo: v }); }}   placeholder="To (date)" />
       </div>
 
       <p className="text-text-dim text-[11px] font-mono mb-3">tip: click a category badge to change it</p>

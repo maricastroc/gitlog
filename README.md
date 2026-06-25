@@ -71,7 +71,6 @@ src/
 │   ├── useRepoLoader.ts    # Multi-step async flow: tags → commits
 │   ├── useRepoPreview.ts   # Debounced GitHub metadata fetch
 │   ├── useRecentRepos.ts   # localStorage-backed recent repos
-│   └── useRequest.ts       # Generic SWR wrapper
 ├── lib/                # Axios instances (api, githubApi)
 ├── pages/api/
 │   ├── commits/        # Commit fetch + categorization (remote & local)
