@@ -52,20 +52,18 @@ export default function SettingsView({ settings, setSettings }: Props) {
         <div className="panel">
           <p className="text-text-dim text-[10px] uppercase tracking-widest mb-4">Keywords by category</p>
 
-          <div className="flex flex-col gap-3 mb-4">
+          <div className="flex flex-col divide-y divide-line mb-4">
             {Object.entries(settings.keywords).map(([cat, kws]) => (
-              <div key={cat} className="flex items-start gap-2.5">
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[var(--radius-sm)] uppercase tracking-wider border shrink-0 mt-0.5 ${catStyle(cat).text} ${catStyle(cat).bg} ${catStyle(cat).accent}`}>
+              <div key={cat} className="flex flex-wrap items-center gap-1.5 py-3">
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-[var(--radius-sm)] uppercase tracking-wider border border-line shrink-0 ${catStyle(cat).text} ${catStyle(cat).bg}`}>
                   {cat}
                 </span>
-                <div className="flex flex-wrap gap-1.5 flex-1">
-                  {kws.map((kw) => (
-                    <span key={kw} className="flex items-center gap-1 bg-panel-2 border border-line text-text-dim text-[11px] px-2 py-0.5 rounded-[var(--radius-sm)]">
-                      {kw}
-                      <button onClick={() => removeKeyword(cat, kw)} className="text-text-dim hover:text-text bg-transparent border-none cursor-pointer text-sm leading-none">×</button>
-                    </span>
-                  ))}
-                </div>
+                {kws.map((kw) => (
+                  <span key={kw} className="flex items-center gap-1 bg-panel-2 text-text-dim text-[11px] px-2 py-0.5 rounded-[var(--radius-sm)]">
+                    {kw}
+                    <button onClick={() => removeKeyword(cat, kw)} className="text-text-dim hover:text-text bg-transparent border-none cursor-pointer text-sm leading-none">×</button>
+                  </span>
+                ))}
               </div>
             ))}
           </div>
@@ -111,7 +109,7 @@ export default function SettingsView({ settings, setSettings }: Props) {
                   <p className="text-text-dim text-[11px] mt-0.5">{desc}</p>
                 </div>
                 <button onClick={() => toggle(key)}
-                  className={`relative w-10 h-5 rounded-full shrink-0 mt-0.5 overflow-hidden border transition-colors cursor-pointer ${settings[key] ? "bg-add border-add" : "bg-panel-2 border-line"}`}>
+                  className={`relative w-10 h-5 rounded-full shrink-0 mt-0.5 overflow-hidden border transition-colors cursor-pointer ${settings[key] ? "bg-add border-add" : "bg-panel border-text-dim"}`}>
                   <span className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all ${settings[key] ? "left-[22px]" : "left-0.5"}`} />
                 </button>
               </div>

@@ -128,7 +128,7 @@ function categorize(message: string, userKeywords: Record<string, string[]> = {}
   }
   if (/^feat(\(.+\))?[!:]/.test(m)) return "feat";
   if (/^fix(\(.+\))?[!:]/.test(m)) return "fix";
-  if (/^chore(\(.+\))?[!:]/.test(m)) return "chore";
+  if (/^chore(\(.+\))?[!:]/.test(m)) return "refactor";
   if (/^docs(\(.+\))?[!:]/.test(m)) return "docs";
   if (/^refactor(\(.+\))?[!:]/.test(m)) return "refactor";
   if (/^test(\(.+\))?[!:]/.test(m)) return "test";
@@ -139,6 +139,6 @@ function categorize(message: string, userKeywords: Record<string, string[]> = {}
   if (/\b(refactor(s|ed|ing)?|renam(e[sd]?|ing)|rewrite|rewrit|restructur|reorganiz|mov(e[sd]?|ing))\b/.test(m)) return "refactor";
   if (/\b(test(s|ed|ing)?|spec|coverage|assert|jest|vitest|cypress)\b/.test(m)) return "test";
   if (/\b(style[sd]?|styling|format(s|ted|ting)?|lint(s|ed|ing)?|prettier|css|design|layout|ui|ux|spacing|padding|margin|color|font|icon)\b/.test(m)) return "style";
-  if (/\b(chore|updat(e[sd]?|ing)|upgrad(e[sd]?|ing)|bump(s|ed|ing)?|remov(e[sd]?|ing)|delet(e[sd]?|ing)|clean(s|ed|ing|up)?|adjust(s|ed|ing)?|config|setup|build|ci|cd|deploy|script|depend|migrat)\b/.test(m)) return "chore";
+  if (/\b(chore|updat(e[sd]?|ing)|upgrad(e[sd]?|ing)|bump(s|ed|ing)?|remov(e[sd]?|ing)|delet(e[sd]?|ing)|clean(s|ed|ing|up)?|adjust(s|ed|ing)?|config|setup|build|ci|cd|deploy|script|depend|migrat)\b/.test(m)) return "refactor";
   return "other";
 }

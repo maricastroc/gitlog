@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export type RecentRepo = {
   label: string;
@@ -12,15 +12,15 @@ export type RecentRepo = {
 const KEY = "gitlog:recent-repos";
 const MAX = 6;
 
-function loadRecents(): RecentRepo[] {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
 export function useRecentRepos() {
-  const [recents, setRecents] = useState<RecentRepo[]>(loadRecents);
+  const [recents, setRecents] = useState<RecentRepo[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) setRecents(JSON.parse(raw));
+    } catch {}
+  }, []);
 
   function add(repo: RecentRepo) {
     setRecents((prev) => {

@@ -85,7 +85,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
   const statCards = [
     { label: "Features",      cat: "feat",  count: byCat["feat"]  ?? 0 },
     { label: "Bug Fixes",     cat: "fix",   count: byCat["fix"]   ?? 0 },
-    { label: "Chores",        cat: "chore", count: byCat["chore"] ?? 0 },
+    { label: "Refactors",     cat: "refactor", count: byCat["refactor"] ?? 0 },
     { label: "Uncategorized", cat: "other", count: byCat["other"] ?? 0 },
   ];
 
@@ -225,7 +225,7 @@ export default function Overview({ commits, repoInfo, refs = [], onViewAllCommit
                     <span className="text-text-dim">{Math.round((count / commits.length) * 100)}%</span>
                   </div>
                   <div className="h-1 bg-panel-2 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${catStyle(cat).bar}`} style={{ width: `${(count / maxCat) * 100}%` }} />
+                    <div className={`h-full rounded-full ${catStyle(cat).bar}`} style={{ width: `${Math.round((count / commits.length) * 100)}%` }} />
                   </div>
                 </div>
               ))}

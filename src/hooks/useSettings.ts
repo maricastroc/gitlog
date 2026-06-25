@@ -5,9 +5,8 @@ const DEFAULT_SETTINGS: Settings = {
   keywords: {
     feat:     ["adds", "implements", "creates", "introduces"],
     fix:      ["fixes", "resolves", "patches", "corrects"],
-    chore:    ["updates", "bumps", "removes", "cleans"],
     docs:     ["documents", "comments", "readme"],
-    refactor: ["refactors", "reorganizes"],
+    refactor: ["refactors", "reorganizes", "updates", "bumps", "removes", "cleans"],
     style:    ["styles", "layout", "css"],
     test:     ["tests", "specs", "coverage"],
   },
