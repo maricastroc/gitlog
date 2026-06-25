@@ -19,7 +19,7 @@ import {
 
 type Grouping = "none" | "month" | "week";
 
-type Props = { commits: Commit[]; repoInfo: RepoInfo; onExport?: () => void };
+type Props = { commits: Commit[]; repoInfo: RepoInfo; showAuthor?: boolean; onExport?: () => void };
 
 const GROUPING_OPTIONS: { value: Grouping; label: string }[] = [
   { value: "none", label: "No grouping" },
@@ -27,7 +27,7 @@ const GROUPING_OPTIONS: { value: Grouping; label: string }[] = [
   { value: "week", label: "By week" },
 ];
 
-export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
+export default function ChangelogView({ commits, repoInfo, showAuthor = false, onExport }: Props) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
 
@@ -76,7 +76,7 @@ export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
     });
   }
 
-  const exportInput = { groups, sorted, grouping, range: { from: repoInfo.from, to: repoInfo.to } };
+  const exportInput = { groups, sorted, grouping, range: { from: repoInfo.from, to: repoInfo.to }, showAuthor };
 
   function handleCopy() {
     navigator.clipboard.writeText(generateMarkdown(exportInput));
@@ -183,6 +183,11 @@ export default function ChangelogView({ commits, repoInfo, onExport }: Props) {
                             >
                               <span className="shrink-0 w-2.5">{catStyle(cat).prefix}</span>
                               <span className="flex-1">{c.message}</span>
+                              {showAuthor && (
+                                <span className="text-text-dim text-[11px] shrink-0 hidden sm:block">
+                                  {c.author}
+                                </span>
+                              )}
                               <span className="text-text-dim text-[11px] shrink-0">{c.sha}</span>
                             </div>
                           ))}

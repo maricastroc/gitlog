@@ -33,22 +33,26 @@ type ExportInput = {
   sorted: string[];
   grouping: Grouping;
   range: { from?: string; to?: string };
+  showAuthor?: boolean;
 };
 
-export function generateMarkdown({ groups, sorted, grouping }: ExportInput): string {
+export function generateMarkdown({ groups, sorted, grouping, showAuthor }: ExportInput): string {
   const lines = ["# Changelog\n"];
   sorted.forEach((cat) => {
     lines.push(`## ${catStyle(cat).label}\n`);
     groupByPeriod(groups[cat], grouping).forEach(({ period, commits }) => {
       if (period) lines.push(`### ${period}\n`);
-      commits.forEach((c) => lines.push(`- ${c.message} (\`${c.sha}\`)`));
+      commits.forEach((c) => {
+        const author = showAuthor ? ` — ${c.author}` : "";
+        lines.push(`- ${c.message} (\`${c.sha}\`)${author}`);
+      });
       lines.push("");
     });
   });
   return lines.join("\n");
 }
 
-export function generatePlainText({ groups, sorted, grouping }: ExportInput): string {
+export function generatePlainText({ groups, sorted, grouping, showAuthor }: ExportInput): string {
   const lines = ["CHANGELOG", "=========", ""];
   sorted.forEach((cat) => {
     const label = catStyle(cat).label;
@@ -58,7 +62,10 @@ export function generatePlainText({ groups, sorted, grouping }: ExportInput): st
         lines.push("");
         lines.push(`  [${period}]`);
       }
-      commits.forEach((c) => lines.push(`  * ${c.message} (${c.sha})`));
+      commits.forEach((c) => {
+        const author = showAuthor ? ` — ${c.author}` : "";
+        lines.push(`  * ${c.message} (${c.sha})${author}`);
+      });
     });
     lines.push("");
   });

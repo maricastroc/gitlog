@@ -26,9 +26,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const token = req.query.token as string | undefined;
   const since = req.query.since as string | undefined;
   const until = req.query.until as string | undefined;
-  const userKeywords = parseKeywords(req.query.keywords as string | undefined);
-  const ignoreMerge = req.query.ignoreMerge === "true";
+  const userKeywords        = parseKeywords(req.query.keywords as string | undefined);
+  const ignoreMerge         = req.query.ignoreMerge === "true";
   const conventionalCommits = req.query.conventionalCommits !== "false";
+  const ignoreBots          = req.query.ignoreBots === "true";
+
+  const BOT_RE = /\[bot\]|dependabot|renovate|github-actions|snyk|codecov|semantic-release/i;
 
   if (type === "local") {
     if (!repoPath) return res.status(400).json({ error: "path is required" });
@@ -49,14 +52,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .filter(Boolean)
         .map((line) => {
           const [sha, message, author, date] = line.split("|");
-          return {
-            sha: sha.slice(0, 7),
-            message,
-            author,
-            date,
-            category: categorize(message, userKeywords, conventionalCommits),
-          };
-        });
+          return { sha: sha.slice(0, 7), message, author, date, category: categorize(message, userKeywords, conventionalCommits) };
+        })
+        .filter((c) => !ignoreBots || !BOT_RE.test(c.author));
       return res.json({ data: commits });
     } catch (e) {
       return res
@@ -158,12 +156,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const commits = data
     .filter((c) => !ignoreMerge || !MERGE_RE.test(c.commit.message))
+    .filter((c) => !ignoreBots || !BOT_RE.test(c.commit.author.name))
     .map((c) => ({
       sha: c.sha.slice(0, 7),
       message: c.commit.message.split("\n")[0],
       author: c.commit.author.name,
       date: c.commit.author.date,
-      category: categorize(c.commit.message.split("\n")[0], userKeywords),
+      category: categorize(c.commit.message.split("\n")[0], userKeywords, conventionalCommits),
     }));
 
   return res.json({ data: commits });

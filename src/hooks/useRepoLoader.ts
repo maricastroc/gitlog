@@ -27,6 +27,7 @@ export function useRepoLoader(
   keywords: Settings["keywords"] = {},
   ignoreMerge = true,
   conventionalCommits = true,
+  ignoreBots = true,
 ) {
   const [state, setState] = useState<State>(INITIAL);
 
@@ -55,6 +56,7 @@ export function useRepoLoader(
         keywords: JSON.stringify(keywords),
         ignoreMerge: String(ignoreMerge),
         conventionalCommits: String(conventionalCommits),
+        ignoreBots: String(ignoreBots),
       };
       const res = await api.get<{ data: Commit[] }>("/commits", { params: commitParams });
       const commits = res.data.data ?? [];

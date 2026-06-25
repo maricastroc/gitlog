@@ -12,8 +12,8 @@ const DEFAULT_SETTINGS: Settings = {
   },
   conventionalCommits: true,
   ignoreMerge: true,
-  categorizeByFile: true,
-  includeSquash: false,
+  ignoreBots: true,
+  showAuthor: false,
 };
 
 export { DEFAULT_SETTINGS };
@@ -29,8 +29,8 @@ export function useSettings(): [Settings, (s: Settings) => void] {
         keywords: { ...DEFAULT_SETTINGS.keywords, ...(parsed.keywords ?? {}) },
         conventionalCommits: parsed.conventionalCommits ?? DEFAULT_SETTINGS.conventionalCommits,
         ignoreMerge: parsed.ignoreMerge ?? DEFAULT_SETTINGS.ignoreMerge,
-        categorizeByFile: parsed.categorizeByFile ?? DEFAULT_SETTINGS.categorizeByFile,
-        includeSquash: parsed.includeSquash ?? DEFAULT_SETTINGS.includeSquash,
+        ignoreBots: parsed.ignoreBots ?? DEFAULT_SETTINGS.ignoreBots,
+        showAuthor: parsed.showAuthor ?? DEFAULT_SETTINGS.showAuthor,
       };
     } catch {
       return DEFAULT_SETTINGS;

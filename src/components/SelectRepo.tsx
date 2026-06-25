@@ -19,6 +19,7 @@ type Props = {
   keywords?: Settings["keywords"];
   ignoreMerge?: boolean;
   conventionalCommits?: boolean;
+  ignoreBots?: boolean;
   hasExported?: boolean;
 };
 
@@ -37,6 +38,7 @@ export default function SelectRepo({
   keywords = {},
   ignoreMerge = true,
   conventionalCommits = true,
+  ignoreBots = true,
   hasExported = false,
 }: Props) {
   const [tab, setTab] = useState<"remote" | "local">("remote");
@@ -53,7 +55,7 @@ export default function SelectRepo({
     parsed?.repo ?? null,
     token,
   );
-  const loader = useRepoLoader(onLoaded, keywords, ignoreMerge, conventionalCommits);
+  const loader = useRepoLoader(onLoaded, keywords, ignoreMerge, conventionalCommits, ignoreBots);
 
   function switchTab(t: "remote" | "local") {
     setTab(t);

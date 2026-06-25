@@ -22,6 +22,7 @@ async function fetchRemoteCommits(
   from?: string,
   ignoreMerge = true,
   conventionalCommits = true,
+  ignoreBots = true,
 ): Promise<Commit[]> {
   const params: Record<string, string> = {
     type: "remote",
@@ -29,6 +30,7 @@ async function fetchRemoteCommits(
     repo,
     ignoreMerge: String(ignoreMerge),
     conventionalCommits: String(conventionalCommits),
+    ignoreBots: String(ignoreBots),
   };
 
   if (from) params.since = from;
@@ -75,6 +77,7 @@ export default function DashboardClient() {
         repoInfo.from,
         settings.ignoreMerge,
         settings.conventionalCommits,
+        settings.ignoreBots,
       )
         .then((data) => setCommits(data))
         .catch(() => {});
@@ -84,6 +87,7 @@ export default function DashboardClient() {
         path: repoInfo.path,
         ignoreMerge: String(settings.ignoreMerge),
         conventionalCommits: String(settings.conventionalCommits),
+        ignoreBots: String(settings.ignoreBots),
         keywords: JSON.stringify(settings.keywords),
       };
       if (repoInfo.from) params.since = repoInfo.from;
@@ -94,7 +98,7 @@ export default function DashboardClient() {
         .catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.ignoreMerge, settings.conventionalCommits]);
+  }, [settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots]);
 
   useEffect(() => {
     if (autoLoaded.current || !router.isReady) return;
@@ -104,7 +108,7 @@ export default function DashboardClient() {
     if (!owner || !repoName) return;
     autoLoaded.current = true;
 
-    fetchRemoteCommits(owner, repoName, from, settings.ignoreMerge, settings.conventionalCommits)
+    fetchRemoteCommits(owner, repoName, from, settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots)
       .then((data) => {
         setWelcomed(true);
         handleRepoLoaded(
@@ -181,7 +185,7 @@ export default function DashboardClient() {
 
     setWelcomed(true);
 
-    fetchRemoteCommits(owner, repo, recent.from, settings.ignoreMerge, settings.conventionalCommits)
+    fetchRemoteCommits(owner, repo, recent.from, settings.ignoreMerge, settings.conventionalCommits, settings.ignoreBots)
       .then((data) => {
         handleRepoLoaded(
           {
@@ -229,6 +233,7 @@ export default function DashboardClient() {
             keywords={settings.keywords}
             ignoreMerge={settings.ignoreMerge}
             conventionalCommits={settings.conventionalCommits}
+            ignoreBots={settings.ignoreBots}
             hasExported={hasExported}
           />
         </div>
@@ -249,6 +254,7 @@ export default function DashboardClient() {
           <ChangelogView
             commits={commits}
             repoInfo={repoInfo}
+            showAuthor={settings.showAuthor}
             onExport={() => setHasExported(true)}
           />
         )}

@@ -50,22 +50,22 @@ export default function SettingsView({ settings, setSettings }: Props) {
     {
       key: "conventionalCommits",
       label: "Conventional Commits",
-      desc: "prioritizes feat:/fix: prefix when present",
+      desc: "use feat:/fix: prefix to categorize instead of semantic analysis",
     },
     {
       key: "ignoreMerge",
-      label: "Ignore empty merge commits",
-      desc: "removes merge commits with no content changes",
+      label: "Ignore merge commits",
+      desc: "removes merge commits from the changelog",
     },
     {
-      key: "categorizeByFile",
-      label: "Categorize by changed file",
-      desc: "uses diff path as fallback if the message is ambiguous",
+      key: "ignoreBots",
+      label: "Ignore bot commits",
+      desc: "filters out commits from automated bots (dependabot, renovate, etc.)",
     },
     {
-      key: "includeSquash",
-      label: "Include squash commits",
-      desc: "attempts to split squash commits into multiple entries",
+      key: "showAuthor",
+      label: "Show author in changelog",
+      desc: "includes the commit author name in exported changelog",
     },
   ];
 
