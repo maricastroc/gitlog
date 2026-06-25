@@ -106,7 +106,12 @@ export function RepoInputForm({
         </FormField>
       )}
 
-      <Button onClick={onAnalyze} loading={isLoading} disabled={tab === "remote" ? !repoUrl.trim() : !localPath.trim()} className="w-full mt-2 py-3">
+      <Button
+        onClick={onAnalyze}
+        loading={isLoading}
+        disabled={tab === "remote" ? !repoUrl.trim() : !localPath.trim()}
+        className="w-full mt-2 py-3"
+      >
         Analyze repository <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
       </Button>
 

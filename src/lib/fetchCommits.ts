@@ -16,7 +16,7 @@ type FetchCommitsOptions = {
 export async function fetchCommits(
   source: RemoteSource | LocalSource,
   options: FetchCommitsOptions = {},
-): Promise<Commit[]> {
+): Promise<{ commits: Commit[]; truncated: boolean }> {
   const {
     from,
     to,
@@ -45,6 +45,6 @@ export async function fetchCommits(
   if (from) params.since = from;
   if (to && to !== "HEAD") params.until = to;
 
-  const res = await api.get<{ data: Commit[] }>("/commits", { params });
-  return res.data.data ?? [];
+  const res = await api.get<{ data: Commit[]; truncated?: boolean }>("/commits", { params });
+  return { commits: res.data.data ?? [], truncated: res.data.truncated ?? false };
 }

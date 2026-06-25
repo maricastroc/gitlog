@@ -133,11 +133,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     commit: { message: string; author: { name: string; date: string } };
   };
 
+  const MAX_PAGES = 10;
+
   async function fetchAllPages(
     url: string,
-  ): Promise<{ data: GhCommit[]; status: number; error?: string }> {
+  ): Promise<{ data: GhCommit[]; status: number; error?: string; truncated?: boolean }> {
     const all: GhCommit[] = [];
     let next: string | null = url;
+    let pages = 0;
     while (next) {
       const r = await fetch(next, { headers });
       if (!r.ok) {
@@ -146,14 +149,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       const page: GhCommit[] = await r.json();
       all.push(...page);
+      pages++;
       const link: string = r.headers.get("link") ?? "";
       const match: RegExpMatchArray | null = link.match(/<([^>]+)>;\s*rel="next"/);
       next = match ? match[1] : null;
+      if (pages >= MAX_PAGES) return { data: all, status: 200, truncated: !!next };
     }
     return { data: all, status: 200 };
   }
 
-  const { data, status, error } = await fetchAllPages(
+  const { data, status, error, truncated } = await fetchAllPages(
     `https://api.github.com/repos/${owner}/${repo}/commits?${params}`,
   );
   if (error) return res.status(status).json({ error });
@@ -171,5 +176,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       category: categorize(c.commit.message.split("\n")[0], userKeywords, conventionalCommits),
     }));
 
-  return res.json({ data: commits });
+  return res.json({ data: commits, truncated: truncated ?? false });
 }

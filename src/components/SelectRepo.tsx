@@ -24,7 +24,7 @@ type Props = {
 };
 
 function parseRemote(url: string) {
-  const match = url.match(/github\.com[/:]([^/]+)\/([^/\s.]+)/);
+  const match = url.match(/github\.com[/:]([^/]+)\/([^/\s]+)/);
   if (match) return { owner: match[1], repo: match[2].replace(/\.git$/, "") };
   const parts = url.split("/").filter(Boolean);
   if (parts.length === 2) return { owner: parts[0], repo: parts[1] };

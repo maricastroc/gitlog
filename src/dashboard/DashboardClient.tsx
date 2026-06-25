@@ -76,7 +76,7 @@ export default function DashboardClient() {
         ignoreBots: settings.ignoreBots,
         keywords: settings.keywords,
       })
-        .then((data) => {
+        .then(({ commits: data }) => {
           setCommits(data);
           setCategoryOverrides(new Map());
         })
@@ -103,7 +103,7 @@ export default function DashboardClient() {
         keywords: settings.keywords,
       },
     )
-      .then((data) => {
+      .then(({ commits: data, truncated: t }) => {
         setWelcomed(true);
         handleRepoLoaded(
           {
@@ -113,6 +113,7 @@ export default function DashboardClient() {
             repo: repoName,
             from: from ?? "",
             to: to ?? "HEAD",
+            truncated: t,
           },
           data,
           false,
@@ -189,7 +190,7 @@ export default function DashboardClient() {
         keywords: settings.keywords,
       },
     )
-      .then((data) => {
+      .then(({ commits: data, truncated: t }) => {
         handleRepoLoaded(
           {
             type: "remote",
@@ -198,6 +199,7 @@ export default function DashboardClient() {
             repo,
             from: recent.from ?? "",
             to: recent.to ?? "HEAD",
+            truncated: t,
           },
           data,
         );
@@ -240,6 +242,20 @@ export default function DashboardClient() {
             hasExported={hasExported}
           />
         </div>
+
+        {repoInfo?.truncated &&
+          (view === "overview" ||
+            view === "commits" ||
+            view === "changelog" ||
+            view === "authors") && (
+            <div
+              className="mb-4 px-3 py-2 rounded-lg bg-[var(--color-fix)]/10 text-[var(--color-fix)] text-xs font-mono"
+              style={{ border: "1px solid rgba(255, 255, 255, 0.12)" }}
+            >
+              Showing the first 1,000 commits. Use a narrower range (e.g. between two tags) to see
+              the full history.
+            </div>
+          )}
 
         {view === "overview" && repoInfo && (
           <Overview

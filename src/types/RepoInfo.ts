@@ -7,4 +7,5 @@ export type RepoInfo = {
   token?: string;
   from?: string;
   to?: string;
+  truncated?: boolean;
 };

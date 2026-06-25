@@ -55,7 +55,7 @@ export function useRepoLoader(
           ? { type: "remote" as const, owner: params.owner, repo: params.repo, token: params.token }
           : { type: "local" as const, path: params.path };
 
-      const commits = await fetchCommits(source, {
+      const { commits, truncated } = await fetchCommits(source, {
         from: state.from,
         to: state.to,
         ignoreMerge,
@@ -72,6 +72,7 @@ export function useRepoLoader(
               path: params.path,
               from: state.from,
               to: state.to,
+              truncated,
             }
           : {
               type: "remote",
@@ -81,6 +82,7 @@ export function useRepoLoader(
               token: params.token,
               from: state.from,
               to: "HEAD",
+              truncated,
             };
 
       onLoaded(info, commits, state.refs);
