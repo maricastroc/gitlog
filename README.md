@@ -1,103 +1,165 @@
+<div align="center">
+
+<img src="public/favicon.svg" width="76" alt="Gitlog logo" />
+
 # Gitlog
 
-<img width="3204" height="1722" alt="preview" src="https://github.com/user-attachments/assets/4bbb2a23-76ee-4dea-b17a-b80ef06468b9" />
+**📜 Changelog Generator**
 
+Turn any Git repository's commit history into a structured, exportable changelog. <br/>
+Paste a GitHub URL, pick a range, and get an instant overview — categorized commits, contributor activity, and a ready-to-ship changelog.
 
-A full-stack changelog generator that turns Git commit history into structured, exportable changelogs — built with Next.js, TypeScript, and the GitHub API.
+<br/>
 
-[Live demo →](https://gitlog.marianacastro.dev/)
+[![Live Demo](https://img.shields.io/badge/●_Live_Demo-1a1a1a?style=for-the-badge&logoColor=white)](https://gitlog.marianacastro.dev)
+[![Features](https://img.shields.io/badge/★_Features-1a1a1a?style=for-the-badge)](#-features)
+[![Docs](https://img.shields.io/badge/▣_Docs-1a1a1a?style=for-the-badge)](#ℹ%EF%B8%8F-how-to-run-the-application)
 
----
+</div>
 
-## Why did I build this
+<br/>
 
-I joined a team maintaining a large legacy codebase with hundreds of PRs and no structured changelog. Every time I needed to understand what had changed between two releases — or just get a feel for the project's history — I'd end up digging through raw git logs and GitHub's PR list, manually piecing things together.
+## 📜 Features
 
-Gitlog was my answer to that. Paste a GitHub URL, pick a date or tag range, and get an instant structured overview: commit breakdown by category, contributor activity, and a ready-to-export changelog. What used to take an hour now takes seconds.
+|                              |                                                                                                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🏷️ Commit Categorization** | Commits are classified into feat, fix, chore, docs, refactor, style, and test through a two-pass engine — user keyword rules, then conventional-commit prefixes. |
+| **📊 Instant Overview**      | Total counts by category, an interactive activity timeline, distribution bars, and top contributors — all from a single URL and range.                          |
+| **🔀 Release Diff**          | Compare two commit ranges side by side with per-category deltas (`+4`, `-2`), percentage shares, and growth multipliers (`1.5× growth`).                        |
+| **🔗 Shareable Permalink**   | The URL encodes the repo and range, so any analysis becomes a direct link that auto-loads on open.                                                              |
+| **📦 Multi-format Export**   | Export the generated changelog as `.md` (paste into `CHANGELOG.md`), `.txt` (terminals & legacy systems), or `.json` (structured for CI/CD pipelines).          |
 
-## Highlights
+<br/>
 
-**Commit categorization engine** — commits are classified into categories (feat, fix, chore, docs, refactor, style, test) through a two-pass system: first checking user-defined keyword rules, then falling back to conventional commit prefixes, and finally running a broad regex pass against common vocabulary. The entire logic lives in a single pure function (`api/commits/index.ts: categorize`) with no external dependencies.
+## 🖼️ Screenshots
 
-**Debounced repository preview** — as you type a GitHub URL, a live preview card fetches the repo metadata (stars, forks, description) with a 600ms debounce, so the API is only hit once you pause typing (`useRepoPreview.ts`).
+<table>
+  <tr>
+    <td align="center" width="62%"><strong>Desktop</strong></td>
+    <td align="center" width="38%"><strong>Mobile</strong></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/overview-desktop.png" alt="Overview — Desktop" /></td>
+    <td rowspan="2" valign="top"><img src="docs/home-mobile.png" alt="Home — Mobile" /></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src="docs/commits-desktop.png" alt="Commits — Desktop" /></td>
+  </tr>
+</table>
 
-**Stateful multi-step flow** — the repository loading flow (URL → tags → commits) is managed by a custom hook (`useRepoLoader.ts`) that exposes a minimal patch-based state updater, keeping all async transitions in one place and making each step independently resettable.
+<br/>
 
-**Recent repositories** — previously analyzed repos are persisted to `localStorage` and shown as one-click shortcuts, restoring both the tab (remote/local) and the URL or path.
+## 🛠️ Tech Stack
 
-**Branch & tag comparison** — the range selector lists both branches and tags in grouped dropdowns (with live search), so you can compare `main` vs `develop`, `v1.0` vs `v2.0`, or any combination. The API resolves each ref — trying `tags/` first, then `heads/` — so branch names and tag names are handled transparently.
+<p>
+  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white" alt="Axios" />
+  <img src="https://img.shields.io/badge/SWR-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="SWR" />
+  <img src="https://img.shields.io/badge/Radix_UI-161618?style=for-the-badge&logo=radixui&logoColor=white" alt="Radix UI" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+</p>
 
-**Interactive commit activity chart** — the overview displays a bar chart of commit frequency over time. Clicking a bar filters the "Recent activity" list to show only commits from that day, with a dismissible chip showing the active filter.
+| Category          | Technologies                                |
+| ----------------- | ------------------------------------------- |
+| **Framework**     | Next.js 16 (Pages Router), React 19         |
+| **Language**      | TypeScript 5                                |
+| **Styling**       | Tailwind CSS v3                             |
+| **Data Fetching** | Axios + SWR                                 |
+| **UI Primitives** | Radix UI (Select, Popover)                  |
+| **Icons**         | Font Awesome                                |
+| **Dates**         | date-fns, react-day-picker                  |
+| **Testing**       | Vitest                                      |
+| **Tooling**       | ESLint, Prettier                            |
+| **Deploy**        | Vercel                                      |
 
-**Changelog time grouping** — the generated changelog can be grouped by month or week within each category, making long histories easier to read. The grouping is reflected in all export formats (`.md` gets `###` sub-headings, `.json` gets a `periods` array).
+<br/>
 
-**Release diff** — the overview exposes a "Compare with another range" panel that fetches a second commit range and renders a side-by-side category breakdown: current count, delta (`+4`, `-2`), percentage share before and after, and a growth multiplier (`1.5× growth`). The available refs (branches and tags) are reused from the initial load, so no extra API call is needed when opening the panel (`ReleaseDiff.tsx`).
+## 📝 Project Description
 
-**Shareable permalink** — after loading a remote repository, the URL is updated with `?repo=owner/repo&from=ref&to=ref` query params. Opening that URL auto-fetches the same commits and lands directly on the overview, so analysis results can be shared with a single link. A "share" button in the overview header copies the current URL to the clipboard.
+Gitlog is a full-stack changelog generator that turns raw Git commit history into a structured, exportable overview. Most of the time, understanding what changed between two releases means digging through raw git logs and GitHub's PR list, manually piecing things together. Gitlog replaces that with a single flow: **paste a GitHub URL, pick a date or tag range, and get an instant structured changelog** — what used to take an hour now takes seconds.
 
----
+It fetches commits from the GitHub API (or the local filesystem when running locally), classifies each one into a category, and renders a multi-view dashboard: an overview with an interactive activity chart, a commits table with a per-row category editor, a grouped changelog, and a per-contributor breakdown.
 
-## Features
+**Additional features:**
 
-- **Commit overview** — total counts by category, activity timeline, distribution bars, and top contributors at a glance
-- **Commits table** — full list with per-row category editor, date filter, and author filter
-- **Changelog view** — commits grouped by category, with optional time sub-grouping (by month or week) and one-click copy or export as `.md`, `.txt`, or `.json`
-- **Authors view** — per-contributor breakdown showing their commits, categories, and dates
-- **Configurable settings** — toggle conventional commits detection, merge commit filtering, squash inclusion, and define keyword rules per category
-- **Branch & tag comparison** — range selectors list branches and tags in grouped, searchable dropdowns — compare `main` vs `develop` or `v1.0` vs `v2.0` directly
-- **Release diff** — compare two commit ranges side by side with per-category deltas, percentage shares, and growth multipliers
-- **Shareable permalink** — URL encodes the repository and range so any analysis can be shared as a direct link; auto-loads on open
-- **Remote & local repos** — GitHub repos via URL (with optional token for private repos or rate limit bypass); local repos by filesystem path when running locally
-- **Multi-format export** — generated changelog can be exported as `.md` (ready to paste into `CHANGELOG.md`), `.txt` (plain text for terminals and legacy systems), or `.json` (structured with metadata for CI/CD pipelines)
+- **Commit categorization engine:** The flagship feature. See the [dedicated section](#-the-categorization-engine) below — a single pure function classifies every commit through user keyword rules, conventional-commit prefixes, and a broad vocabulary pass.
+- **Debounced repository preview:** As you type a GitHub URL, a live preview card fetches repo metadata (stars, forks, description) with a 600ms debounce, so the API is only hit once you pause typing (`useRepoPreview.ts`).
+- **Stateful multi-step flow:** The repository loading flow (URL → tags → commits) is managed by a custom hook (`useRepoLoader.ts`) that exposes a minimal patch-based state updater, keeping all async transitions in one place and making each step independently resettable.
+- **Branch & tag comparison:** The range selector lists both branches and tags in grouped, searchable dropdowns, so you can compare `main` vs `develop` or `v1.0` vs `v2.0`. The API resolves each ref — trying `tags/` first, then `heads/` — so branch and tag names are handled transparently.
+- **Release diff:** A "Compare with another range" panel fetches a second commit range and renders a side-by-side category breakdown: current count, delta, percentage share before and after, and a growth multiplier — reusing the already-loaded refs so no extra API call is needed (`ReleaseDiff.tsx`).
+- **Changelog time grouping:** The generated changelog can be grouped by month or week within each category, and the grouping is reflected in every export format (`.md` gets `###` sub-headings, `.json` gets a `periods` array).
+- **Shareable permalink:** After loading a remote repo, the URL is updated with `?repo=owner/repo&from=ref&to=ref`. Opening that URL auto-fetches the same commits and lands directly on the overview — a "share" button copies it to the clipboard.
+- **Recent repositories:** Previously analyzed repos are persisted to `localStorage` and shown as one-click shortcuts, restoring both the tab (remote/local) and the URL or path.
+- **Remote & local repos:** GitHub repos via URL (with an optional token for private repos or rate-limit bypass), and local repos by filesystem path when running locally.
 
----
+<br/>
 
-## Tech Stack
+## 🏷️ The categorization engine
 
-| Layer | Tech |
-|---|---|
-| Framework | Next.js 16 (Pages Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS v3 |
-| HTTP client | Axios + SWR |
-| UI primitives | Radix UI (Select, Popover) |
-| Icons | Font Awesome |
-| Date handling | date-fns |
-| Deploy | Vercel |
-
----
-
-## Project Structure
+The heart of Gitlog isn't a regex grab-bag — it's a small, **deterministic** and **dependency-free** classifier that decides which category every commit belongs to. The whole pipeline runs server-side:
 
 ```
-src/
-├── components/         # UI components (SelectRepo, Overview, CommitsView, ChangelogView...)
-├── dashboard/          # DashboardClient — top-level state and view routing
-├── hooks/
-│   ├── useRepoLoader.ts    # Multi-step async flow: tags → commits
-│   ├── useRepoPreview.ts   # Debounced GitHub metadata fetch
-│   ├── useRecentRepos.ts   # localStorage-backed recent repos
-├── lib/                # Axios instances (api, githubApi)
-├── pages/api/
-│   ├── commits/        # Commit fetch + categorization (remote & local)
-│   └── tags/           # Tag list (remote & local)
-├── styles/             # Global CSS and Tailwind theme
-└── types.ts            # Shared TypeScript types (Commit, RepoInfo, View, Settings)
+GitHub URL → resolve refs (tags/ → heads/) → fetch commit range (GitHub API)
+    → categorize each commit (pure function, no deps)
+    → group by category → optional time sub-grouping (month / week)
+    → overview + table + changelog → UI / export (.md / .txt / .json)
 ```
 
----
+**It classifies in two passes.** Each commit message runs through `categorize` ([`src/pages/api/commits/index.ts`](src/pages/api/commits/index.ts)) in order, so the most specific signal always wins:
 
-## Running Locally
+- **User keyword rules** — category-specific keywords defined in settings are checked first, so a team's own vocabulary overrides everything else.
+- **Conventional-commit prefixes** — `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `style:`, `test:` are matched directly when present.
+- **Broad vocabulary pass** — a final regex sweep against common words catches messages that don't follow the convention, falling back to a sensible default rather than dropping the commit.
 
-Prerequisites: Node.js 18+, Git
+**It stays editable.** Categorization is a suggestion, not a verdict — the commits table exposes a per-row category editor, so anything the engine gets wrong can be reassigned in one click, and the change flows through to the overview, changelog, and every export.
+
+**It compares ranges, not just snapshots.** The release diff reuses the loaded refs to fetch a second range and renders a per-category delta — current count, `+/-` change, percentage share before and after, and a growth multiplier — turning "here's what's in this release" into "here's exactly how it changed since the last one".
+
+<br/>
+
+## 📌 What did I learn?
+
+The most interesting part of this project was keeping the categorization **predictable** while still being forgiving. A naive single-pass regex either misclassifies non-conventional commits or forces every team into one vocabulary. Layering user rules → conventional prefixes → a broad fallback into one pure function meant the logic stayed easy to reason about and unit-test, while the per-row editor made the rare misses a non-issue. Building the multi-step async flow (URL → tags → commits) behind a single patch-based hook also taught me how much complexity a clean state boundary can absorb — every step stays independently resettable without scattering async logic across components.
+
+<br/>
+
+## ℹ️ How to run the application?
+
+> Clone the repository:
 
 ```bash
-git clone https://github.com/maricastroc/gitlog.git
-cd gitlog
+git clone https://github.com/maricastroc/gitlog
+```
+
+> Install the dependencies:
+
+```bash
 npm install
+```
+
+> Start the service:
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+> Run all tests:
 
-> **Note:** the "Local repo" tab (analyzing repos by filesystem path) is only available when running locally. On the deployed version, only remote GitHub repositories are supported.
+```bash
+npm run test
+```
+
+> ⏩ Access [http://localhost:3000](http://localhost:3000) to view the web application.
+
+> **Note:** Gitlog runs with no configuration. A GitHub token is optional — it only raises the API rate limit and enables private repos. The "Local repo" tab (analyzing repos by filesystem path) is available only when running locally; the deployed version supports remote GitHub repositories only.
+
+<br/>
+
+<div align="center">
+
+⭐ If you like this project, give it a star on GitHub!
+
+</div>
