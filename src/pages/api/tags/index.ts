@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { spawnSync } from "child_process";
 import type { Ref } from "@/types";
+import { readTokenHeader } from "@/lib/tokenHeaders";
 
 const GITHUB_NAME_RE = /^[a-zA-Z0-9_.-]{1,100}$/;
 
@@ -11,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const path = req.query.path as string | undefined;
   const owner = req.query.owner as string | undefined;
   const repo = req.query.repo as string | undefined;
-  const token = req.query.token as string | undefined;
+  const token = readTokenHeader(req.headers["x-github-token"]);
 
   if (type === "local") {
     if (!path) return res.status(400).json({ error: "path is required" });

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { spawnSync } from "child_process";
 import { categorize } from "@/lib/categorize";
+import { readTokenHeader } from "@/lib/tokenHeaders";
 
 const GITHUB_NAME_RE = /^[a-zA-Z0-9_.-]{1,100}$/;
 const SAFE_REF_RE = /^[a-zA-Z0-9_./@-]{1,200}$/;
@@ -23,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const repoPath = req.query.path as string | undefined;
   const owner = req.query.owner as string | undefined;
   const repo = req.query.repo as string | undefined;
-  const token = req.query.token as string | undefined;
+  const token = readTokenHeader(req.headers["x-github-token"]);
   const since = req.query.since as string | undefined;
   const until = req.query.until as string | undefined;
   const userKeywords = parseKeywords(req.query.keywords as string | undefined);

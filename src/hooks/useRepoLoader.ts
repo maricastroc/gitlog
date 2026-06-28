@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "@/lib/axios";
 import { fetchCommits } from "@/lib/fetchCommits";
+import { tokenHeaders } from "@/lib/tokenHeaders";
 import type { Commit, Ref, RepoInfo, Settings } from "@/types";
 import type { AxiosError } from "axios";
 
@@ -39,7 +40,13 @@ export function useRepoLoader(
   async function fetchTags(params: RepoParams) {
     set({ isLoading: true, error: "" });
     try {
-      const res = await api.get<{ data: Ref[] }>("/tags", { params });
+      const token = params.type === "remote" ? params.token : undefined;
+      const query = { ...params };
+      delete (query as RemoteParams).token;
+      const res = await api.get<{ data: Ref[] }>("/tags", {
+        params: query,
+        headers: tokenHeaders(token),
+      });
       const refs = res.data.data ?? [];
       set({ step: 1, refs, from: refs[0]?.name ?? "", isLoading: false });
     } catch (err) {

@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import { tokenHeaders } from "@/lib/tokenHeaders";
 import type { Commit, Settings } from "@/types";
 
 type RemoteSource = { type: "remote"; owner: string; repo: string; token?: string };
@@ -37,7 +38,6 @@ export async function fetchCommits(
   if (source.type === "remote") {
     params.owner = source.owner;
     params.repo = source.repo;
-    if (source.token) params.token = source.token;
   } else {
     params.path = source.path;
   }
@@ -45,6 +45,10 @@ export async function fetchCommits(
   if (from) params.since = from;
   if (to && to !== "HEAD") params.until = to;
 
-  const res = await api.get<{ data: Commit[]; truncated?: boolean }>("/commits", { params });
+  const headers = tokenHeaders(source.type === "remote" ? source.token : undefined);
+  const res = await api.get<{ data: Commit[]; truncated?: boolean }>("/commits", {
+    params,
+    headers,
+  });
   return { commits: res.data.data ?? [], truncated: res.data.truncated ?? false };
 }

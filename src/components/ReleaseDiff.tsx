@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Commit, Ref, RepoInfo } from "@/types";
 import { api } from "@/lib/axios";
+import { tokenHeaders } from "@/lib/tokenHeaders";
 import { buildRefOptions } from "@/lib/refOptions";
 import TagSelect from "@/components/TagSelect";
 import DiffResult from "@/components/DiffResult";
@@ -39,8 +40,10 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
         owner: repoInfo.owner!,
         repo: repoInfo.repo!,
       };
-      if (repoInfo.token) params.token = repoInfo.token;
-      const res = await api.get<{ data: Ref[] }>("/tags", { params });
+      const res = await api.get<{ data: Ref[] }>("/tags", {
+        params,
+        headers: tokenHeaders(repoInfo.token),
+      });
       const fetched = res.data.data ?? [];
       setExtraRefs(fetched);
       if (!from && fetched[0]) setFrom(fetched[0].name);
@@ -61,8 +64,10 @@ export default function ReleaseDiff({ commits, repoInfo, refs: initialRefs }: Pr
         ...(from && { since: from }),
         ...(to && to !== "HEAD" && { until: to }),
       };
-      if (repoInfo.token) params.token = repoInfo.token;
-      const res = await api.get<{ data: Commit[]; truncated?: boolean }>("/commits", { params });
+      const res = await api.get<{ data: Commit[]; truncated?: boolean }>("/commits", {
+        params,
+        headers: tokenHeaders(repoInfo.token),
+      });
       setCompareState({
         status: "done",
         commits: res.data.data ?? [],

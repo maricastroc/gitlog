@@ -23,7 +23,7 @@ Paste a GitHub URL, pick a range, and get an instant overview — categorized co
 
 |                              |                                                                                                                                                                |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **🏷️ Commit Categorization** | Commits are classified into feat, fix, chore, docs, refactor, style, and test through a two-pass engine — user keyword rules, then conventional-commit prefixes. |
+| **🏷️ Commit Categorization** | Commits are classified into feat, fix, docs, refactor, style, and test through a two-pass engine — user keyword rules, then conventional-commit prefixes. |
 | **📊 Instant Overview**      | Total counts by category, an interactive activity timeline, distribution bars, and top contributors — all from a single URL and range.                          |
 | **🔀 Release Diff**          | Compare two commit ranges side by side with per-category deltas (`+4`, `-2`), percentage shares, and growth multipliers (`1.5× growth`).                        |
 | **🔗 Shareable Permalink**   | The URL encodes the repo and range, so any analysis becomes a direct link that auto-loads on open.                                                              |
@@ -111,7 +111,7 @@ GitHub URL → resolve refs (tags/ → heads/) → fetch commit range (GitHub AP
 **It classifies in two passes.** Each commit message runs through `categorize` ([`src/pages/api/commits/index.ts`](src/pages/api/commits/index.ts)) in order, so the most specific signal always wins:
 
 - **User keyword rules** — category-specific keywords defined in settings are checked first, so a team's own vocabulary overrides everything else.
-- **Conventional-commit prefixes** — `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `style:`, `test:` are matched directly when present.
+- **Conventional-commit prefixes** — `feat:`, `fix:`, `docs:`, `refactor:`, `style:`, `test:` are matched directly when present (`chore:` is recognized too and folds into refactor).
 - **Broad vocabulary pass** — a final regex sweep against common words catches messages that don't follow the convention, falling back to a sensible default rather than dropping the commit.
 
 **It stays editable.** Categorization is a suggestion, not a verdict — the commits table exposes a per-row category editor, so anything the engine gets wrong can be reassigned in one click, and the change flows through to the overview, changelog, and every export.
@@ -154,7 +154,9 @@ npm run test
 
 > ⏩ Access [http://localhost:3000](http://localhost:3000) to view the web application.
 
-> **Note:** Gitlog runs with no configuration. A GitHub token is optional — it only raises the API rate limit and enables private repos. The "Local repo" tab (analyzing repos by filesystem path) is available only when running locally; the deployed version supports remote GitHub repositories only.
+> **No configuration needed.** A GitHub token is optional — it only raises the API rate limit and enables private repos.
+
+> **Local repos are a self-host feature.** The "Local repo" tab analyzes repositories straight from your filesystem by path — no GitHub API, no rate limit, works offline. Because it reads the host machine's filesystem, it works **only when you run Gitlog yourself** (locally or self-hosted). The public deployment has no access to your machine, so it supports remote GitHub repositories only.
 
 <br/>
 
